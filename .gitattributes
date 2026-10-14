@@ -1,0 +1,11 @@
+# Normalize line endings to LF in the repository
+* text=auto eol=lf
+
+# Language detection on GitHub
+*.sv   linguist-language=SystemVerilog
+*.svh  linguist-language=SystemVerilog
+
+# Binary assets
+*.png  binary
+*.jpg  binary
+*.pdf  binary

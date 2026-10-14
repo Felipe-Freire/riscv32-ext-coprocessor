@@ -1,0 +1,73 @@
+# ---------------------------------------------------------------------------
+# Build output: everything generated goes here
+# ---------------------------------------------------------------------------
+build/
+
+# ---------------------------------------------------------------------------
+# Waveforms, coverage databases and logs
+# ---------------------------------------------------------------------------
+*.vcd
+*.fst
+*.fsdb
+*.vpd
+*.wlf
+*.wdb
+*.shm/
+*.ucdb
+*.log
+*.key
+*.history
+
+# ---------------------------------------------------------------------------
+# Simulators
+# ---------------------------------------------------------------------------
+# Cadence Xcelium
+xcelium.d/
+INCA_libs/
+cov_work/
+.simvision/
+.reinvoke.sim
+# Siemens Questa / ModelSim
+work/
+transcript
+modelsim.ini
+vsim.dbg
+# Synopsys VCS / Verdi
+csrc/
+simv
+simv.daidir/
+simv.vdb/
+DVEfiles/
+verdiLog/
+novas*
+vc_hdrs.h
+urgReport/
+# AMD Vivado xsim
+xsim.dir/
+.Xil/
+*.jou
+*.pb
+webtalk*
+# Verilator
+obj_dir/
+
+# ---------------------------------------------------------------------------
+# Software build products
+# ---------------------------------------------------------------------------
+*.o
+*.elf
+*.bin
+*.dis
+*.map
+
+# ---------------------------------------------------------------------------
+# Python, editors, OS
+# ---------------------------------------------------------------------------
+__pycache__/
+*.pyc
+.venv/
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
