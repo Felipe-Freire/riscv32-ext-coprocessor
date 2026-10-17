@@ -1,0 +1,3 @@
+[submodule "rtl/bus/axi"]
+	path = rtl/bus/axi
+	url = git@github.com:pulp-platform/axi.git
