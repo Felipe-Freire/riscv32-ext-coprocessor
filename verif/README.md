@@ -8,10 +8,10 @@ lists. The verification strategy and coverage goals are defined in the
 
 | Directory | Contents |
 |---|---|
-| [`uvm/agents/`](uvm/agents/) | Reusable UVCs, one directory per interface (e.g. `coproc_if_agent/`, `mem_agent/`) |
+| [`uvm/agents/`](uvm/agents/) | Reusable UVCs, one directory per interface (e.g. `obi_agent/`, `axi_lite_agent/`, `axis_agent/`) |
 | [`uvm/core/`](uvm/core/) | Block-level environment for the RV32 core |
 | [`uvm/coproc/`](uvm/coproc/) | Block-level environment for the matrix multiplication coprocessor |
-| [`uvm/top/`](uvm/top/) | System-level environment (core + coprocessor) |
+| [`uvm/top/`](uvm/top/) | System-level environment (SoC: core, DMA, coprocessor, interconnect) |
 | [`models/`](models/) | Golden reference models (Python/NumPy, C via DPI, ISS integration) |
 | [`assertions/`](assertions/) | SVA properties attached to RTL through `bind` files |
 | [`regress/`](regress/) | Regression lists: test × seed × configuration |

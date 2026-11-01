@@ -11,6 +11,8 @@ Tool wrappers and helper utilities. Day-to-day use goes through the top-level
 | [`sim/`](sim/) | Simulator flows, one subdirectory per tool (`xrun/`, `vsim/`, `vcs/`, `xsim/`, `verilator/`) |
 | [`utils/`](utils/) | Helpers: ELF→hex conversion, generators, log and coverage report parsers |
 
+Synthesis flow scripts live with their constraints in [`syn/`](../syn/README.md).
+
 ## Conventions
 
 - Scripts must work from any directory: resolve paths from `$PROJ_ROOT`, never from the current directory.

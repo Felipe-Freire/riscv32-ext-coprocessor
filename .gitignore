@@ -52,6 +52,20 @@ webtalk*
 obj_dir/
 
 # ---------------------------------------------------------------------------
+# Synthesis tools (they write some files into the working directory)
+# ---------------------------------------------------------------------------
+# Synopsys Design Compiler / Formality
+alib-*/
+*.svf
+*.mr
+*.syn
+*.pvl
+# Cadence Genus / Innovus
+genus.cmd*
+innovus.cmd*
+fv/
+
+# ---------------------------------------------------------------------------
 # Software build products
 # ---------------------------------------------------------------------------
 *.o
@@ -68,6 +82,7 @@ __pycache__/
 .venv/
 .vscode/
 .idea/
+.dvt/
 *.swp
 *~
 .DS_Store
