@@ -1,0 +1,6 @@
+[submodule "vendor/axi"]
+	path = vendor/axi
+	url = https://github.com/pulp-platform/axi.git
+[submodule "vendor/common_cells"]
+	path = vendor/common_cells
+	url = https://github.com/pulp-platform/common_cells.git
