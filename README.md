@@ -47,7 +47,7 @@ Diagrams are in [`docs/figures/`](docs/README.md#figures).
 ## Quick start
 
 ```bash
-git clone git@github.com:Felipe-Freire/riscv32-ext-coprocessor.git
+git clone --recurse-submodules git@github.com:Felipe-Freire/riscv32-ext-coprocessor.git
 cd riscv32-ext-coprocessor
 source scripts/setup.sh   # exports PROJ_ROOT
 make help                 # list available targets
