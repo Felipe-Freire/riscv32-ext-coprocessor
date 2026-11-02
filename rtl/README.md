@@ -14,7 +14,7 @@ and ports, and [`top/`](top/README.md) holds the memory map and the interfaces b
 |---|---|---|---|
 | [`common/`](common/) | Project-wide packages: memory map, shared types | `<name>_pkg` | — |
 | [`prim/`](prim/) | Technology primitives (SRAM and ROM macros, clock gating, synchronizers, async FIFOs) | `prim_` | — |
-| [`core/`](core/README.md) | RV32 core: fetch, decode, ALU, LSU, register file, CSRs | `core_` | Instructions, CSRs, traps, ports |
+| [`core/`](core/README.md) | RV32 core: `rv32_pkg`, units (ALU, decoder, register file, ...) in `units/`, pipeline stages in `stage/` | `rv32_` | Instructions, CSRs, traps, ports |
 | [`coproc/`](coproc/README.md) | Systolic-array coprocessor: PE array, skew and drain, tile sequencer, registers, CDC | `coproc_` | Operation, matrix layout, registers, ports |
 | [`dma/`](dma/README.md) | DMA: registers, 3D address generators, AXI4 burst engine, stream ports | `dma_` | Channels, registers, ports |
 | [`bus/`](bus/) | Interconnect: OBI→AXI4 and OBI→AXI4-Lite bridges, AXI4 interconnect, AXI4-Lite address decoder | `bus_` | In [`top/`](top/README.md#interfaces-between-blocks) |
@@ -45,16 +45,17 @@ Based on the [lowRISC SystemVerilog style guide](https://github.com/lowRISC/styl
 
 | Item | Convention | Example |
 |---|---|---|
-| File | One module or package per file, file name = module name | `core_alu.sv` |
-| Modules, packages, signals, instances | `lower_snake_case`, module prefix from the table above | `coproc_pe_array` |
-| Packages | `_pkg` suffix | `core_pkg` |
+| File | One module or package per file, file name = module name | `rv32_alu.sv` |
+| Modules, packages, signals, instances, functions, named blocks, struct fields | `lower_snake_case`, module prefix from the table above | `coproc_pe_array`, `gen_regs` |
+| Packages | `_pkg` suffix | `rv32_pkg` |
 | Inputs / outputs / bidirectionals | `_i` / `_o` / `_io` suffix | `valid_i`, `ready_o` |
 | Active-low | `_n`, joined with the direction suffix | `rst_ni` |
 | Registers | `_d` (next state) / `_q` (current state); `_q2`, `_q3` for extra pipeline delays | `state_q` |
-| Tunable parameters | `UpperCamelCase` | `NumBanks` |
-| Constants (`localparam`) | `ALL_CAPS` or `UpperCamelCase` | `XLEN`, `ResetAddr` |
-| Enum types / other typedefs | `_e` / `_t` suffix | `alu_op_e`, `obi_req_t` |
-| Enum values | `UpperCamelCase` | `AluAdd`, `StIdle` |
+| Parameters (set at instantiation) | `parameter`, `UpperCamelCase`, explicit type and a default | `BootAddr` |
+| Constants derived from parameters | `localparam`, `UpperCamelCase` | `AddrWidth` |
+| Fixed constants (encodings, values set by a spec) | `ALL_CAPS`; `parameter` in a package, `localparam` in a module | `XLEN`, `FUNCT12_ECALL` |
+| Enum types / other typedefs | `_e` / `_t` suffix; enums always `typedef`'d with a `logic` storage type | `alu_op_e`, `dec_ctrl_t` |
+| Enum values | `ALL_CAPS` when the encoding is fixed, `UpperCamelCase` when it is arbitrary | `OPCODE_LOAD`, `AluAdd` |
 | Macros | `ALL_CAPS` | `` `ASSERT_KNOWN `` |
 | Clocks | `clk_i` for the module's main clock, `clk_<domain>_i` for others | `clk_acc_i` |
 | Resets | Asynchronous, active-low: `rst_ni`, `rst_<domain>_ni` for other domains | `rst_acc_ni` |
@@ -62,6 +63,7 @@ Based on the [lowRISC SystemVerilog style guide](https://github.com/lowRISC/styl
 Rules:
 
 - Use `always_ff` and `always_comb`, never `always @(*)`. Latches only inside `prim_` cells.
+- Name generate blocks and `always` blocks: `begin : gen_regs`, `begin : next_pc`.
 - No `initial` blocks, `#` delays, `$display`, classes or interfaces. Group related signals in
   packed structs (`_t`) instead of interfaces.
 - Reset control state (valid bits, FSM states, counters, CSRs). Datapath registers have no reset:
