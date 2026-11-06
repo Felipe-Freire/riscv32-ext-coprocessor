@@ -37,7 +37,7 @@ Diagrams are in [`docs/figures/`](docs/README.md#figures).
 |---|---|
 | [`rtl/`](rtl/README.md) | Synthesizable SystemVerilog and the block specifications: core, coprocessor, DMA, interconnect, memories, timer, SoC top |
 | [`vendor/`](vendor/README.md) | Third-party IP, unmodified (git submodules) |
-| [`verif/`](verif/README.md) | UVM environments, reference models, assertions, regression lists |
+| [`verif/`](verif/README.md) | UVM environments, unit testbenches, reference models, assertions, regression lists |
 | [`sw/`](sw/README.md) | RISC-V programs that run on the core (tests, matmul kernels) |
 | [`syn/`](syn/README.md) | ASIC synthesis inputs: timing constraints, flow scripts |
 | [`docs/`](docs/README.md) | Verification plan, guides, figures |

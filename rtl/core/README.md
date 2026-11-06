@@ -3,6 +3,28 @@
 In-order, single-issue, 5-stage pipeline (fetch, decode, execute, memory, write-back), machine mode
 only. Datapath: [`core-datapath.svg`](../../docs/figures/core-datapath.svg).
 
+## Source layout
+
+| Path | Contents |
+|---|---|
+| `rv32_pkg.sv` | ISA encodings and the control types shared by the units |
+| `units/` | One module per unit: ALU, decoder, immediate generator, register file |
+| `stage/` | One module per pipeline stage, including the pipeline register it feeds (`rv32_if_stage.sv`) |
+
+## Stage interfaces
+
+| Signals | Naming | Example (`rv32_if_stage`) |
+|---|---|---|
+| Pipeline register | `<reg>_<field>`: output of the stage that writes the register, input of the next | `ifid_pc_o` → `ifid_pc_i` |
+| Memory and bus ports | Same names as the core ports | `instr_req_o`, `instr_rdata_i` |
+| Redirects | `<stage>_redirect_i` and `<stage>_target_i`, named after the stage that resolves them | `ex_redirect_i`, `trap_i` |
+| Hazard control | Named after its effect on the receiving stage | `stall_i` |
+
+Each stage writes the pipeline register it feeds (IF writes IF/ID). A flush clears only
+`<reg>_valid`, so every side effect downstream is qualified with it. PCs and targets are
+`[XLEN-1:2]`. Ports go in this order: clock and reset, memory or bus, control from later stages,
+outputs to the next stage.
+
 ## Instructions
 
 `RV32I` + `Zicsr`. GCC flags: `-march=rv32i_zicsr -mabi=ilp32`.
@@ -66,8 +88,8 @@ copies `MPIE` back to `MIE`, sets `MPIE` and jumps to `mepc`.
 | `clk_i`, `rst_ni` | in | 1 | Clock, asynchronous active-low reset |
 | `instr_req_o` | out | 1 | Fetch; low while the pipeline is stalled |
 | `instr_addr_o` | out | 32 | Fetch address (bits 1:0 are 0) |
-| `instr_rdata_i` | in | 32 | Instruction, one cycle after the request |
-| `instr_err_i` | in | 1 | Fetch outside the Boot ROM and I-TCM |
+| `instr_rdata_i` | in | 32 | Instruction, one cycle after the request; held while `instr_req_o` is low |
+| `instr_err_i` | in | 1 | Fetch outside the Boot ROM and I-TCM; timed and held like `instr_rdata_i` |
 | `data_req_o`, `data_gnt_i` | out, in | 1 | OBI request and grant |
 | `data_addr_o` | out | 32 | Byte address |
 | `data_we_o`, `data_be_o` | out | 1, 4 | Write enable, byte enables |

@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=13;align=right;" value="&lt;b&gt;RV32I 5-stage pipeline&lt;/b&gt; &amp;middot; datapath v0.3" vertex="1">
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=13;align=right;" value="&lt;b&gt;RV32I 5-stage pipeline&lt;/b&gt; &amp;middot; datapath v0.4" vertex="1">
           <mxGeometry height="26" width="580" x="-622" as="geometry" />
         </mxCell>
         <mxCell id="lg_box" parent="1" style="rounded=0;html=1;fillColor=#FFFFFF;strokeColor=#B0B0B0;" value="" vertex="1">
@@ -79,7 +79,7 @@
         <mxCell id="RF" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" value="&lt;b&gt;Register File&lt;/b&gt;&lt;br&gt;31&amp;times;32 flip-flops&lt;br&gt;x0 hard-wired to 0&lt;br&gt;2R1W, comb. read&lt;br&gt;+ WB&amp;rarr;ID write-through" vertex="1">
           <mxGeometry height="150" width="130" x="-1232" y="198" as="geometry" />
         </mxCell>
-        <mxCell id="IMM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" value="Immediate Gen&lt;br&gt;I / S / B / U / J" vertex="1">
+        <mxCell id="IMM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" value="Immediate Gen&lt;br&gt;I / S / B / U / J&lt;br&gt;&lt;font style='font-size:9px'&gt;U also: CSR addr, zimm&lt;/font&gt;" vertex="1">
           <mxGeometry height="50" width="130" x="-1232" y="393" as="geometry" />
         </mxCell>
         <mxCell id="TADD" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" value="Target adder&lt;br&gt;pc + imm (B/J/U)" vertex="1">
@@ -160,7 +160,7 @@
         <mxCell id="e5" edge="1" parent="1" source="NPC" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" target="PCR" value="next_pc /30">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e6" edge="1" parent="1" source="PCR" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.0;entryY=0.3333;entryDx=0;entryDy=0;" target="IMEM" value="addr [31:2]">
+        <mxCell id="e6" edge="1" parent="1" source="PCR" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.25;exitDx=0;exitDy=0;entryX=0.0;entryY=0.3333;entryDx=0;entryDy=0;" target="IMEM" value="addr [31:2]&lt;br&gt;req = ~stall">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e7" edge="1" parent="1" source="PCR" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.0;entryY=0.4889;entryDx=0;entryDy=0;" target="INC" value="pc">
@@ -190,8 +190,8 @@
         <mxCell id="e10" edge="1" parent="1" source="IMEM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.375;entryDx=0;entryDy=0;" target="IFID" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="t_inst" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" value="inst /32" vertex="1">
-          <mxGeometry height="14" width="40" x="-1384" y="338" as="geometry" />
+        <mxCell id="t_inst" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" value="inst /32&lt;br&gt;err" vertex="1">
+          <mxGeometry height="24" width="40" x="-1384" y="333" as="geometry" />
         </mxCell>
         <mxCell id="e11" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.3;strokeColor=#C00000;dashed=1;fontColor=#C00000;entryX=0.0;entryY=0.7333;entryDx=0;entryDy=0;exitX=0.07;exitY=0;exitDx=0;exitDy=0;" target="NPC" value="trap, trap_target /30 (mtvec | mepc) &amp;middot; flushes IF/ID, ID/EX, EX/MEM" source="CSR">
           <mxGeometry relative="1" x="-0.065" as="geometry">
@@ -207,10 +207,10 @@
             <mxPoint x="-1712" y="468" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="t_npcsel" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" value="&lt;b&gt;Next-PC sel&lt;/b&gt;&lt;br&gt;trap &amp;gt; ex &amp;gt; id &amp;gt; +4&lt;br&gt;(PC resets to the boot address)" vertex="1">
-          <mxGeometry height="40" width="160" x="-1792" y="468" as="geometry" />
+        <mxCell id="t_npcsel" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" value="&lt;b&gt;Next-PC sel&lt;/b&gt;&lt;br&gt;trap &amp;gt; ex &amp;gt; id &amp;gt; +4&lt;br&gt;ID redirect waits while stalled&lt;br&gt;(PC resets to the boot address)" vertex="1">
+          <mxGeometry height="52" width="160" x="-1792" y="468" as="geometry" />
         </mxCell>
-        <mxCell id="e14" edge="1" parent="1" source="IFID" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.0391;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" target="DEC" value="opcode, f3, f7">
+        <mxCell id="e14" edge="1" parent="1" source="IFID" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.0391;exitDx=0;exitDy=0;entryX=0.0;entryY=0.5;entryDx=0;entryDy=0;" target="DEC" value="inst /32, err">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e15" edge="1" parent="1" source="IFID" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.1719;exitDx=0;exitDy=0;entryX=0.0;entryY=0.2;entryDx=0;entryDy=0;" target="RF" value="rs1 [19:15]">
@@ -281,14 +281,14 @@
         <mxCell id="e33" edge="1" parent="1" source="HFU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.9333;exitY=0.7;exitDx=0;exitDy=0;entryX=0.0;entryY=0.9062;entryDx=0;entryDy=0;" target="IDEX" value="idex_flush (bubble)">
           <mxGeometry relative="1" x="0.15" as="geometry" />
         </mxCell>
-        <mxCell id="e34" edge="1" parent="1" source="HFU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.0333;exitY=0.6;exitDx=0;exitDy=0;entryX=0.5;entryY=1.0;entryDx=0;entryDy=0;" target="PCR" value="pc_en (stall)">
+        <mxCell id="e34" edge="1" parent="1" source="HFU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.0333;exitY=0.6;exitDx=0;exitDy=0;entryX=0.5;entryY=1.0;entryDx=0;entryDy=0;" target="PCR" value="stall">
           <mxGeometry relative="1" x="0.3" as="geometry">
             <Array as="points">
               <mxPoint x="-1637" y="688" />
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e35" edge="1" parent="1" source="HFU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.0444;exitY=0.82;exitDx=0;exitDy=0;entryX=1.0;entryY=0.925;entryDx=0;entryDy=0;" target="IFID" value="ifid_en">
+        <mxCell id="e35" edge="1" parent="1" source="HFU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.0444;exitY=0.82;exitDx=0;exitDy=0;entryX=1.0;entryY=0.925;entryDx=0;entryDy=0;" target="IFID" value="stall">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e36" edge="1" parent="1" source="IDEX" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.2422;exitDx=0;exitDy=0;entryX=0.0;entryY=0.1364;entryDx=0;entryDy=0;" target="MA" value="rs1">
@@ -655,14 +655,14 @@
             <mxPoint x="-42" y="860" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="f_ifid" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;IF/ID &amp;middot; 31 b&lt;/b&gt;&lt;br&gt;valid 1 &amp;middot; pc[31:2] 30&lt;br&gt;inst = I-TCM / ROM output (no flop)&lt;br&gt;memory not enabled while stalled &amp;rArr; holds inst" vertex="1">
+        <mxCell id="f_ifid" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;IF/ID &amp;middot; 31 b&lt;/b&gt;&lt;br&gt;valid 1 &amp;middot; pc[31:2] 30&lt;br&gt;inst, err = I-TCM / ROM output (no flop)&lt;br&gt;memory off while stalled &amp;rArr; held" vertex="1">
           <mxGeometry height="54" width="180" x="-1422" y="866" as="geometry" />
         </mxCell>
-        <mxCell id="f_idex" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;ID/EX &amp;middot; ~195 b&lt;/b&gt;&lt;br&gt;valid &amp;middot; rs1 &amp;middot; rs2 &amp;middot; imm (32 each) &amp;middot; pc &amp;middot; alt_pc (30 each)&lt;br&gt;opa/opb/std_sel 6 &amp;middot; alu ctl 11 &amp;middot; br_en/pred/jalr 3 &amp;middot; f3 3&lt;br&gt;mem_re/we 2 &amp;middot; rd 5 &amp;middot; rd_we 1 &amp;middot; exc 5 &amp;middot; csr/mret 2" vertex="1">
+        <mxCell id="f_idex" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;ID/EX &amp;middot; ~190 b&lt;/b&gt;&lt;br&gt;valid &amp;middot; rs1 &amp;middot; rs2 &amp;middot; imm (32 each) &amp;middot; pc &amp;middot; alt_pc (30 each)&lt;br&gt;fwd sel A/B/st 6 &amp;middot; opb_imm &amp;middot; alu_op 4 &amp;middot; rd_alt_pc &amp;middot; br/pred/jalr 3 &amp;middot; f3 3&lt;br&gt;mem_re/we 2 &amp;middot; rd 5 &amp;middot; rd_we &amp;middot; exc 5 &amp;middot; csr/mret 2" vertex="1">
           <mxGeometry height="54" width="310" x="-1077" y="866" as="geometry" />
         </mxCell>
-        <mxCell id="f_exmem" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;EX/MEM &amp;middot; 80 b&lt;/b&gt; (+37 bus path)&lt;br&gt;valid &amp;middot; ex_result 32 &amp;middot; rd 5 &amp;middot; rd_we &amp;middot; mem_re &amp;middot; f3 3&lt;br&gt;pc 30 &amp;middot; exc 5 &amp;middot; csr/mret 2&lt;br&gt;bus: wdata 32 &amp;middot; be 4 &amp;middot; req 1" vertex="1">
-          <mxGeometry height="54" width="240" x="-652" y="866" as="geometry" />
+        <mxCell id="f_exmem" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;EX/MEM &amp;middot; 80 b&lt;/b&gt; (+37 bus path)&lt;br&gt;valid &amp;middot; ex_result 32 &amp;middot; rd 5 &amp;middot; rd_we &amp;middot; mem_re &amp;middot; f3 3&lt;br&gt;pc 30 &amp;middot; exc 5 &amp;middot; csr/mret 2 &amp;middot; bus: wdata 32 &amp;middot; be 4 &amp;middot; req 1&lt;br&gt;CSR: addr, zimm = ex_result[31:20], [19:15]; rs1 in wdata" vertex="1">
+          <mxGeometry height="62" width="240" x="-652" y="866" as="geometry" />
         </mxCell>
         <mxCell id="f_memwb" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;MEM/WB &amp;middot; 39 b&lt;/b&gt;&lt;br&gt;valid 1 &amp;middot; wb_data 32 &amp;middot; rd 5 &amp;middot; rd_we 1" vertex="1">
           <mxGeometry height="54" width="180" x="-302" y="866" as="geometry" />
@@ -670,7 +670,7 @@
         <mxCell id="x_idflush" value="flush" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.3;strokeColor=#C00000;dashed=1;fontColor=#C00000;exitX=0;exitY=0.8;exitDx=0;exitDy=0;entryX=1;entryY=0.7609;entryDx=0;entryDy=0;" edge="1" parent="1" source="BTFN" target="IFID">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="x_dec_hfu" value="src sel, rs used" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.0722;entryY=0.22;entryDx=0;entryDy=0;" edge="1" parent="1" source="DEC" target="HFU">
+        <mxCell id="x_dec_hfu" value="rs1_ren, rs2_ren" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.0722;entryY=0.22;entryDx=0;entryDy=0;" edge="1" parent="1" source="DEC" target="HFU">
           <mxGeometry relative="1" as="geometry" x="0.82">
             <Array as="points">
               <mxPoint x="-1162" y="188" />
@@ -693,7 +693,7 @@
         <mxCell id="CSR" value="&lt;b&gt;CSR + trap ctrl&lt;/b&gt;&lt;br&gt;Zicsr, M-mode&lt;br&gt;&lt;font style='font-size:9px'&gt;mstatus &amp;middot; mie/mip &amp;middot; mtvec &amp;middot; mepc &amp;middot; mcause&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="-447" y="228" width="140" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="x_exmem_csr" value="pc, exc, csr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1;exitY=0.2203;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="EXMEM" target="CSR">
+        <mxCell id="x_exmem_csr" value="pc, exc, csr&lt;br&gt;ex_result, wdata" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1;exitY=0.2203;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="EXMEM" target="CSR">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="x_irq" value="irq: meip, mtip" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;entryX=0.5714;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="CSR">
@@ -708,6 +708,18 @@
               <mxPoint x="-297" y="380" />
             </Array>
           </mxGeometry>
+        </mxCell>
+        <mxCell id="x_dec_imm" value="imm_sel" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.2;entryDx=0;entryDy=0;" edge="1" parent="1" source="DEC" target="IMM">
+          <mxGeometry relative="1" as="geometry" x="0.75">
+            <Array as="points">
+              <mxPoint x="-1162" y="188" />
+              <mxPoint x="-1257" y="188" />
+              <mxPoint x="-1257" y="403" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x_jn2" value="" style="ellipse;html=1;fillColor=#404040;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="-1259.5" y="400.5" width="5" height="5" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>

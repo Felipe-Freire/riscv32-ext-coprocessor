@@ -1,13 +1,14 @@
 # Verification
 
-Everything non-synthesizable: UVM environments, reference models, assertions and regression
-lists. The verification strategy and coverage goals are defined in the
+Everything non-synthesizable: UVM environments, unit testbenches, reference models, assertions and regression lists.
+The verification strategy and coverage goals are defined in the
 [verification plan](../docs/README.md#verification).
 
 ## Contents
 
 | Directory | Contents |
 |---|---|
+| [`unit/`](unit/README.md) | Self-checking unit testbenches without UVM (`make unit`) |
 | [`uvm/agents/`](uvm/agents/) | Reusable UVCs, one directory per interface (e.g. `obi_agent/`, `axi_lite_agent/`, `axis_agent/`) |
 | [`uvm/core/`](uvm/core/) | Block-level environment for the RV32 core |
 | [`uvm/core_pc/`](uvm/core_pc/) | Module-level environment for the core program counter (`core_pc`), agent in `uvm/agents/core_pc_agent/` |
