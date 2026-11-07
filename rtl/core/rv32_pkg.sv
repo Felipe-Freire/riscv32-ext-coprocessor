@@ -71,8 +71,8 @@ package rv32_pkg;
     ImmJ
   } imm_sel_e;
 
-  // Source of an EX operand (A, B and store data). The hazard unit picks it in ID and it is
-  // registered in ID/EX, so the forwarding comparators are not on the EX path.
+  // Source of an EX operand. The hazard unit picks it in ID and it is registered in ID/EX, so the
+  // forwarding comparators are not on the EX path.
   typedef enum logic [1:0] {
     FwdNone,    // value read from the register file in ID
     FwdExMem,   // result of the previous instruction
@@ -81,7 +81,7 @@ package rv32_pkg;
 
   // Decoder output (ID).
   typedef struct packed {
-    logic       exc;        // fetch fault, illegal instruction, ECALL or EBREAK: trap in MEM
+    logic       exc;        // fetch fault, illegal, misaligned JAL, ECALL, EBREAK: trap in MEM
     exc_cause_e exc_cause;
     logic       rs1_ren;    // reads rs1 / rs2; hazard detection ignores the field otherwise
     logic       rs2_ren;
@@ -98,5 +98,32 @@ package rv32_pkg;
     logic       mret;
     logic       rd_we;      // 0 when rd == x0, so x0 is never written or forwarded
   } dec_ctrl_t;
+
+  // ID/EX pipeline register. Its valid bit is a separate flop with reset; a flush clears only
+  // that bit, so every side effect downstream is qualified with it.
+  typedef struct packed {
+    logic [XLEN-1:2] pc;
+    logic [XLEN-1:2] alt_pc;      // path not taken in ID, link of JAL / JALR, AUIPC result
+    logic [XLEN-1:0] rs1_data;
+    logic [XLEN-1:0] rs2_data;
+    logic [XLEN-1:0] imm;
+    fwd_sel_e        fwd_a;       // operand A, from rs1
+    fwd_sel_e        fwd_b;       // operand B and store data, both from rs2
+    logic            opb_imm;
+    alu_op_e         alu_op;
+    logic            rd_alt_pc;
+    logic            branch;
+    logic            pred_taken;
+    logic            jalr;
+    logic [2:0]      funct3;
+    logic            mem_re;
+    logic            mem_we;
+    logic [4:0]      rd;
+    logic            rd_we;
+    logic            exc;
+    exc_cause_e      exc_cause;
+    logic            csr;
+    logic            mret;
+  } idex_t;
 
 endpackage

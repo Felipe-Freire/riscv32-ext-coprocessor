@@ -1,9 +1,10 @@
 // Instruction decoder (ID): RV32I + Zicsr, machine mode only.
 //
-// A trapping instruction (access fault, illegal, ECALL, EBREAK) has its architectural side
-// effects cleared: rd_we, mem_re, mem_we, csr and mret. Branch, jump and register-read fields
-// are left as decoded so the illegal-instruction check stays off the redirect and stall paths;
-// at worst they cause a wrong-path fetch or a stall, and the trap in MEM flushes both.
+// A trapping instruction (access fault, illegal, misaligned JAL, ECALL, EBREAK) has its
+// architectural side effects cleared: rd_we, mem_re, mem_we, csr and mret. Branch, jump and
+// register-read fields are left as decoded so the illegal-instruction check stays off the redirect
+// and stall paths; at worst they cause a wrong-path fetch or a stall, and the trap in MEM flushes
+// both.
 //
 // CSR instructions use the U immediate, which carries the CSR address in imm[31:20] and zimm in
 // imm[19:15]; AluPassB places it in ex_result for the CSR unit in MEM.
@@ -20,14 +21,14 @@ module rv32_decoder
   localparam logic [11:0] FUNCT12_MRET   = 12'h302;
   localparam logic [11:0] FUNCT12_WFI    = 12'h105;
 
-  localparam logic [6:0] FUNCT7_BASE = 7'b000_0000;
-  localparam logic [6:0] FUNCT7_ALT  = 7'b010_0000;  // SUB, SRA, SRAI
+  localparam logic [6:0 ] FUNCT7_BASE    = 7'b000_0000;
+  localparam logic [6:0 ] FUNCT7_ALT     = 7'b010_0000;  // SUB, SRA, SRAI
 
   logic [2:0] funct3;
   logic [6:0] funct7;
   logic [4:0] rd, rs1;
   logic       rd_write;  // the instruction writes rd (rd_we is also 0 for x0)
-  logic       illegal, ecall, ebreak;
+  logic       illegal, misaligned, ecall, ebreak;
   dec_ctrl_t  ctrl;
 
   assign funct3 = instr_i[14:12];
@@ -41,6 +42,7 @@ module rv32_decoder
     ctrl.alu_op  = AluAdd;
     rd_write     = 1'b0;
     illegal      = 1'b0;
+    misaligned   = 1'b0;
     ecall        = 1'b0;
     ebreak       = 1'b0;
 
@@ -64,6 +66,7 @@ module rv32_decoder
         ctrl.jal       = 1'b1;
         ctrl.rd_alt_pc = 1'b1;
         rd_write       = 1'b1;
+        misaligned     = instr_i[21];  // imm[1]: the PC is word-aligned, so the target is not
       end
 
       OPCODE_JALR: begin
@@ -186,12 +189,14 @@ module rv32_decoder
 
     ctrl.rd_we = rd_write && (rd != '0);
 
-    // Exception priority: access fault, then illegal, then ECALL / EBREAK.
-    ctrl.exc = instr_err_i | illegal | ecall | ebreak;
+    // Exception priority: access fault, then illegal, then the rest.
+    ctrl.exc = instr_err_i | illegal | misaligned | ecall | ebreak;
     if (instr_err_i) begin
       ctrl.exc_cause = EXC_INSTR_ACCESS_FAULT;
     end else if (illegal) begin
       ctrl.exc_cause = EXC_ILLEGAL_INSTR;
+    end else if (misaligned) begin
+      ctrl.exc_cause = EXC_INSTR_MISALIGNED;
     end else if (ecall) begin
       ctrl.exc_cause = EXC_ECALL_M;
     end else begin

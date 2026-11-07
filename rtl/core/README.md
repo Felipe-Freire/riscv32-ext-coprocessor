@@ -8,8 +8,11 @@ only. Datapath: [`core-datapath.svg`](../../docs/figures/core-datapath.svg).
 | Path | Contents |
 |---|---|
 | `rv32_pkg.sv` | ISA encodings and the control types shared by the units |
-| `units/` | One module per unit: ALU, decoder, immediate generator, register file |
-| `stage/` | One module per pipeline stage, including the pipeline register it feeds (`rv32_if_stage.sv`) |
+| `units/` | One module per unit: ALU, decoder, immediate generator, register file, PC, branch prediction, hazard and forwarding |
+| `stage/` | One module per pipeline stage, including the pipeline register it feeds: `rv32_if_stage.sv`, `rv32_id_stage.sv` |
+
+In the datapath, `rv32_pc` holds the PC and +4 blocks, and `rv32_branch_pred` holds the target
+adder, Static BTFN and `alt_pc` blocks.
 
 ## Stage interfaces
 
@@ -20,10 +23,11 @@ only. Datapath: [`core-datapath.svg`](../../docs/figures/core-datapath.svg).
 | Redirects | `<stage>_redirect_i` and `<stage>_target_i`, named after the stage that resolves them | `ex_redirect_i`, `trap_i` |
 | Hazard control | Named after its effect on the receiving stage | `stall_i` |
 
-Each stage writes the pipeline register it feeds (IF writes IF/ID). A flush clears only
-`<reg>_valid`, so every side effect downstream is qualified with it. PCs and targets are
-`[XLEN-1:2]`. Ports go in this order: clock and reset, memory or bus, control from later stages,
-outputs to the next stage.
+Each stage writes the pipeline register it feeds (IF writes IF/ID). From ID/EX on, a register has
+too many fields for separate ports, so it is `<reg>_valid` plus a packed struct (`idex_valid_o`,
+`idex_o` of type `idex_t`). A flush clears only `<reg>_valid`, so every side effect downstream is
+qualified with it. PCs and targets are `[XLEN-1:2]`. Ports go in this order: clock and reset, memory
+or bus, control from later stages, outputs to the next stage.
 
 ## Instructions
 

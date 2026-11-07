@@ -1,4 +1,4 @@
-// UVM testbench top for core_pc: clock, reset, DUT, interface, run_test().
+// UVM testbench top for rv32_pc: clock, reset, DUT, interface, run_test().
 
 module tb_core_pc;
 
@@ -17,16 +17,20 @@ module tb_core_pc;
     .clk_i(clk)
   );
 
-  core_pc #(
+  logic [31:2] pc_word;
+
+  rv32_pc #(
     .BootAddr(BootAddr)
   ) dut (
     .clk_i      (clk),
     .rst_ni     (pc_if.rst_ni),
     .stall_i    (pc_if.stall),
     .pc_set_i   (pc_if.pc_set),
-    .pc_target_i(pc_if.pc_target),
-    .pc_o       (pc_if.pc)
+    .pc_target_i(pc_if.pc_target[31:2]),
+    .pc_o       (pc_word)
   );
+
+  assign pc_if.pc = {pc_word, 2'b00};
 
   initial begin
     pc_if.rst_ni = 1'b1;

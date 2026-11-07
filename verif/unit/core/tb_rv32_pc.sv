@@ -1,13 +1,9 @@
-// Self-checking testbench for core_pc.
+// Self-checking testbench for rv32_pc.
 //
 // Inputs are driven on the falling edge and the PC is checked against a reference model after
 // every rising edge. Directed tests cover each feature, then random stimulus runs against the model.
-//
-// Run (from the repository root):
-//   iverilog -g2012 -o build/tb_core_pc rtl/core/core_pc.sv verif/unit/core/tb_core_pc.sv
-//   vvp -n build/tb_core_pc
 
-module tb_core_pc;
+module tb_rv32_pc;
 
   localparam logic [31:0] BootAddr     = 32'h0000_1000;
   localparam int unsigned NumRandCycles = 10000;
@@ -18,21 +14,24 @@ module tb_core_pc;
   logic        pc_set;
   logic [31:0] pc_target;
   logic [31:0] pc;
+  logic [31:2] pc_word;
 
   logic [31:0] pc_exp;
   int unsigned num_checks;
   int unsigned num_errors;
 
-  core_pc #(
+  rv32_pc #(
     .BootAddr(BootAddr)
   ) dut (
     .clk_i      (clk),
     .rst_ni     (rst_n),
     .stall_i    (stall),
     .pc_set_i   (pc_set),
-    .pc_target_i(pc_target),
-    .pc_o       (pc)
+    .pc_target_i(pc_target[31:2]),
+    .pc_o       (pc_word)
   );
+
+  assign pc = {pc_word, 2'b00};
 
   initial clk = 1'b0;
   always #5 clk = ~clk;
@@ -126,9 +125,9 @@ module tb_core_pc;
     end
 
     if (num_errors == 0) begin
-      $display("TEST PASSED (%0d checks)", num_checks);
+      $display("PASS: %0d checks", num_checks);
     end else begin
-      $display("TEST FAILED (%0d errors in %0d checks)", num_errors, num_checks);
+      $display("FAIL: %0d errors in %0d checks", num_errors, num_checks);
     end
     $finish;
   end

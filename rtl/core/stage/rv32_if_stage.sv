@@ -1,4 +1,4 @@
-// Fetch stage: PC register, next-PC selection and the IF/ID register.
+// Fetch stage: redirect selection, the PC (rv32_pc) and the IF/ID register.
 //
 // The PC register drives the instruction memory address, so no redirect logic sits in front of
 // the memory. The memory output is the IF/ID instruction (no flop): it arrives one cycle after
@@ -39,56 +39,61 @@ module rv32_if_stage
   output logic            ifid_err_o      // instruction access fault, memory output
 );
 
-  logic [XLEN-1:2] pc_q, pc_d;
-  logic            pc_en;
+  logic            pc_set;
+  logic [XLEN-1:2] pc_target;
+  logic [XLEN-1:2] pc;
+  logic            ifid_en;
   logic            ifid_valid_q;
   logic [XLEN-1:2] ifid_pc_q;
 
+  // During a stall the ID redirect is ignored, so the stalled branch stays in IF/ID and redirects
+  // again once ID advances.
+  assign pc_set = trap_i | ex_redirect_i | (id_redirect_i & ~stall_i);
+
   // Priority: the oldest instruction wins (trap in MEM, then EX, then ID).
-  always_comb begin : next_pc
+  always_comb begin : redirect_target
     if (trap_i) begin
-      pc_d = trap_target_i;
+      pc_target = trap_target_i;
     end else if (ex_redirect_i) begin
-      pc_d = ex_target_i;
-    end else if (id_redirect_i) begin
-      pc_d = id_target_i;
+      pc_target = ex_target_i;
     end else begin
-      pc_d = pc_q + 1'b1;
+      pc_target = id_target_i;
     end
   end
 
-  // PC and IF/ID share this enable. During a stall the ID redirect is ignored, so the stalled
-  // branch stays in IF/ID and redirects again once ID advances.
-  assign pc_en = trap_i | ex_redirect_i | ~stall_i;
+  rv32_pc #(
+    .BootAddr(BootAddr)
+  ) u_pc (
+    .clk_i      (clk_i    ),
+    .rst_ni     (rst_ni   ),
+    .stall_i    (stall_i  ),
+    .pc_set_i   (pc_set   ),
+    .pc_target_i(pc_target),
+    .pc_o       (pc       )
+  );
 
-  always_ff @(posedge clk_i or negedge rst_ni) begin : pc_reg
-    if (!rst_ni) begin
-      pc_q <= BootAddr[XLEN-1:2];
-    end else if (pc_en) begin
-      pc_q <= pc_d;
-    end
-  end
+  // PC and IF/ID move together. The instruction entering IF/ID is the one fetched from the
+  // current PC, so it is on the wrong path whenever a redirect is taken in the same cycle.
+  assign ifid_en = pc_set | ~stall_i;
 
-  // The instruction entering IF/ID is the one fetched from pc_q, so it is on the wrong path
-  // whenever a redirect is taken in the same cycle.
   always_ff @(posedge clk_i or negedge rst_ni) begin : ifid_valid_reg
     if (!rst_ni) begin
       ifid_valid_q <= 1'b0;
-    end else if (pc_en) begin
-      ifid_valid_q <= ~(trap_i | ex_redirect_i | id_redirect_i);
+    end else if (ifid_en) begin
+      ifid_valid_q <= ~pc_set;
     end
   end
 
   always_ff @(posedge clk_i) begin : ifid_pc_reg
-    if (pc_en) begin
-      ifid_pc_q <= pc_q;
+    if (ifid_en) begin
+      ifid_pc_q <= pc;
     end
   end
 
   // The request only depends on stall_i, not on the redirects, which arrive late in the cycle.
   assign instr_req_o  = ~stall_i;
-  assign instr_addr_o = {pc_q, 2'b00};
-  assign pc_o         = pc_q;
+  assign instr_addr_o = {pc, 2'b00};
+  assign pc_o         = pc;
 
   assign ifid_valid_o = ifid_valid_q;
   assign ifid_pc_o    = ifid_pc_q;

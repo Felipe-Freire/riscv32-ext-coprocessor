@@ -63,7 +63,8 @@ module tb_rv32_alu;
     automatic logic [31:0] corner[] = '{32'h0, 32'h1, 32'h2, 32'h1F, 32'h20, 32'h7FFF_FFFF,
                                         32'h8000_0000, 32'h8000_0001, 32'hFFFF_FFFE, 32'hFFFF_FFFF,
                                         32'hAAAA_5555};
-    alu_op_e o = o.first();
+    alu_op_e o;
+    o = o.first();
     do begin
       foreach (corner[i]) foreach (corner[j]) check(o, corner[i], corner[j]);
       repeat (20000) check(o, $urandom(), $urandom());
