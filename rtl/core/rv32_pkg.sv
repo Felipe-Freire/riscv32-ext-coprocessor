@@ -124,6 +124,16 @@ package rv32_pkg;
     exc_cause_e      exc_cause;
     logic            csr;
     logic            mret;
+    logic            jal;
   } idex_t;
+
+  typedef enum logic [2: 0] { 
+    BRANCH_IF_EQ           = 3'b000,
+    BRANCH_IF_NOT_EQ       = 3'b001,
+    BRANCH_IF_LE           = 3'b100,
+    BRANCH_IF_GEQ          = 3'b101,
+    BRANCH_IF_LE_UNSIGNED  = 3'b110,
+    BRANCH_IF_GEQ_UNSIGNED = 3'b111
+  } branch_funct3_t;
 
 endpackage
