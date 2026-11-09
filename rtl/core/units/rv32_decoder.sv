@@ -7,7 +7,7 @@
 // both.
 //
 // CSR instructions use the U immediate, which carries the CSR address in imm[31:20] and zimm in
-// imm[19:15]; AluPassB places it in ex_result for the CSR unit in MEM.
+// imm[19:15]. EX takes both from there and sends rs1 or zimm to the CSR unit in ex_result.
 module rv32_decoder
   import rv32_pkg::*;
 (
