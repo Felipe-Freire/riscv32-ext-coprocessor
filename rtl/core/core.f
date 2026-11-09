@@ -1,11 +1,19 @@
-// RV32 core: package first, then the units, then the stages.
+// RV32 core: package first, then the units, then the stages, then the top.
 ${PROJ_ROOT}/rtl/core/rv32_pkg.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_alu.sv
+${PROJ_ROOT}/rtl/core/units/rv32_branch_cond.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_branch_pred.sv
+${PROJ_ROOT}/rtl/core/units/rv32_csr.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_decoder.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_hazard.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_imm_gen.sv
+${PROJ_ROOT}/rtl/core/units/rv32_load_align.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_pc.sv
+${PROJ_ROOT}/rtl/core/units/rv32_redirect_logic.sv
 ${PROJ_ROOT}/rtl/core/units/rv32_regfile.sv
+${PROJ_ROOT}/rtl/core/units/rv32_store_align.sv
 ${PROJ_ROOT}/rtl/core/stage/rv32_if_stage.sv
 ${PROJ_ROOT}/rtl/core/stage/rv32_id_stage.sv
+${PROJ_ROOT}/rtl/core/stage/rv32_ex_stage.sv
+${PROJ_ROOT}/rtl/core/stage/rv32_mem_stage.sv
+${PROJ_ROOT}/rtl/core/rv32_core.sv

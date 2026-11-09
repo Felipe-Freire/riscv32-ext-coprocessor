@@ -7,12 +7,14 @@ only. Datapath: [`core-datapath.svg`](../../docs/figures/core-datapath.svg).
 
 | Path | Contents |
 |---|---|
+| `rv32_core.sv` | Top: connects the stages and builds the freeze |
 | `rv32_pkg.sv` | ISA encodings and the control types shared by the units |
-| `units/` | One module per unit: ALU, decoder, immediate generator, register file, PC, branch prediction, hazard and forwarding |
-| `stage/` | One module per pipeline stage, including the pipeline register it feeds: `rv32_if_stage.sv`, `rv32_id_stage.sv` |
+| `units/` | One module per unit: PC, decoder, immediate generator, register file, branch prediction, hazard and forwarding, ALU, branch condition, redirect logic, store and load alignment, CSRs and trap control |
+| `stage/` | One module per pipeline stage, including the pipeline register it feeds: `rv32_if_stage.sv`, `rv32_id_stage.sv`, `rv32_ex_stage.sv`, `rv32_mem_stage.sv` |
 
-In the datapath, `rv32_pc` holds the PC and +4 blocks, and `rv32_branch_pred` holds the target
-adder, Static BTFN and `alt_pc` blocks.
+In the datapath, `rv32_pc` holds the PC and +4 blocks, `rv32_branch_pred` the target adder, Static
+BTFN and `alt_pc` blocks, and `rv32_csr` the CSR file and trap control. WB has no module: MEM writes
+the MEM/WB register and the register file write port is in ID.
 
 ## Stage interfaces
 
@@ -51,20 +53,20 @@ scalar multiplications, and matrix multiplications go to the coprocessor
 | Address | Name | Implemented fields |
 |---|---|---|
 | `0x300` | `mstatus` | `MIE` (3), `MPIE` (7); `MPP` (12:11) reads `11` |
-| `0x301` | `misa` | Read-only `0x4000_0100` (RV32I) |
+| `0x301` | `misa` | `0x4000_0100` (RV32I); writes ignored |
 | `0x304` | `mie` | `MTIE` (7), `MEIE` (11) |
 | `0x305` | `mtvec` | `BASE` (31:2); `MODE` reads 0 (direct) |
 | `0x340` | `mscratch` | 31:0 |
 | `0x341` | `mepc` | 31:2; bits 1:0 read 0 |
 | `0x342` | `mcause` | `Interrupt` (31), exception code (3:0) |
-| `0x343` | `mtval` | Read-only 0 |
-| `0x344` | `mip` | `MTIP` (7), `MEIP` (11), read-only |
+| `0x343` | `mtval` | Reads 0; writes ignored |
+| `0x344` | `mip` | `MTIP` (7), `MEIP` (11); writes ignored |
 | `0xB00` / `0xB80` | `mcycle` / `mcycleh` | 64-bit cycle counter |
 | `0xB02` / `0xB82` | `minstret` / `minstreth` | 64-bit retired-instruction counter |
 | `0xF11`–`0xF14` | `mvendorid` `marchid` `mimpid` `mhartid` | Read-only 0 |
 
-Unlisted fields read 0. Accessing any other CSR, or writing a read-only one, raises an
-illegal-instruction exception.
+Unlisted fields read 0. Accessing any other CSR, or writing one in the read-only range
+`0xC00`–`0xFFF`, raises an illegal-instruction exception.
 
 ## Traps
 
@@ -80,10 +82,13 @@ illegal-instruction exception.
 | 5 / 7 | Load / store access fault: unmapped address or bus error |
 | 11 | `ECALL` |
 
-An interrupt is taken when `mstatus.MIE` and its `mie` bit are set; external has priority over
-timer. On a trap the core writes `mepc` (the trapping instruction, or the next one not executed
-for an interrupt) and `mcause`, copies `MIE` to `MPIE`, clears `MIE` and jumps to `mtvec`. `MRET`
-copies `MPIE` back to `MIE`, sets `MPIE` and jumps to `mepc`.
+Traps are taken in MEM, the commit point. An interrupt is taken when `mstatus.MIE` and its `mie`
+bit are set; external has priority over timer, and an exception of the instruction in MEM has
+priority over both. The interrupt replaces the instruction in MEM, unless it is a load or store
+whose request already left: that one completes and the interrupt waits for the next. On a trap the
+core writes `mepc` (the trapping instruction, or the next one not executed for an interrupt) and
+`mcause`, copies `MIE` to `MPIE`, clears `MIE` and jumps to `mtvec`. `MRET` copies `MPIE` back to
+`MIE`, sets `MPIE` and jumps to `mepc`.
 
 ## Ports
 
@@ -102,8 +107,10 @@ copies `MPIE` back to `MIE`, sets `MPIE` and jumps to `mepc`.
 | `data_err_i` | in | 1 | Access fault, valid with `data_rvalid_i` |
 | `irq_timer_i`, `irq_external_i` | in | 1 | `MTIP`, `MEIP` |
 
-The reset PC is the parameter `BootAddr` (default `0x0000_0000`). The D-TCM answers in one cycle;
-bus accesses take several, and the pipeline freezes until `data_rvalid_i`.
+The reset PC is the parameter `BootAddr` (default `0x0000_0000`). Loads and stores send their
+request in EX, with the address straight from the ALU adder, and take the response in MEM; at most
+one access is outstanding. The D-TCM grants at once and answers in the next cycle, so it never
+stalls. A later grant or response freezes the whole pipeline.
 
 ---
 [← Back to RTL](../README.md)

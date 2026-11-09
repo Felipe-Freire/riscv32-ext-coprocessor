@@ -1,43 +1,29 @@
-// RV32I Branch Cond: eq / lt / ltu
+// RV32I branch condition (EX): evaluates the condition of a conditional branch from the ALU
+// comparison flags, which the ALU computes with AluSub.
 //
-// Depending on the operation, can change the next operation that needs to be loaded
-
+// funct3[2:1] picks the flag (00 eq, 10 lt, 11 ltu) and funct3[0] inverts it, which covers BEQ/BNE,
+// BLT/BGE and BLTU/BGEU. Whether a branch redirects is decided by rv32_redirect_logic.
 module rv32_branch_cond
   import rv32_pkg::*;
 (
-  input  logic        jal_i,
-  input  logic        jalr_i,
-  input  logic        branch_i,
-  input  logic [2: 0] funct3_i,
-  input  logic        eq_i,
-  input  logic        lt_i,
-  input  logic        ltu_i,
-  output logic        jmp_o
+  input  logic [2:0] funct3_i,
+  input  logic       eq_i,
+  input  logic       lt_i,
+  input  logic       ltu_i,
+  output logic       taken_o
 );
 
-  logic cond_should_jmp;
+  logic cond;
 
-  always_comb begin
-    cond_should_jmp = 1'b0;
-
-    unique case (branch_funct3_t'(funct3_i))
-      BRANCH_IF_EQ:
-        cond_should_jmp = eq_i;
-      BRANCH_IF_NOT_EQ:
-        cond_should_jmp = ~eq_i;
-      BRANCH_IF_LE:
-        cond_should_jmp = lt_i;
-      BRANCH_IF_GEQ:
-        cond_should_jmp = ~lt_i;
-      BRANCH_IF_LE_UNSIGNED:
-        cond_should_jmp = ltu_i;
-      BRANCH_IF_GEQ_UNSIGNED:
-        cond_should_jmp = ~ltu_i;
-      default:
-        cond_should_jmp = 1'b0;
+  always_comb begin : condition
+    unique case (funct3_i[2:1])
+      2'b00:   cond = eq_i;    // BEQ, BNE
+      2'b10:   cond = lt_i;    // BLT, BGE
+      2'b11:   cond = ltu_i;   // BLTU, BGEU
+      default: cond = 1'b0;    // 010, 011: illegal, the decoder raises the exception
     endcase
   end
 
-  assign jmp_o = jal_i || jalr_i || (cond_should_jmp && branch_i);
+  assign taken_o = cond ^ funct3_i[0];
 
 endmodule

@@ -26,9 +26,9 @@ package rv32_pkg;
   } opcode_e;
 
   // funct3 travels down the pipeline unchanged, and each unit reads its own fields:
-  //   branch unit: [2:1] = 00 eq, 10 lt, 11 ltu; [0] inverts the condition
-  //   LSU:         [1:0] = 00 byte, 01 half, 10 word; [2] zero-extends a load
-  //   CSR unit:    [1:0] = 01 write, 10 set, 11 clear; [2] selects zimm instead of rs1
+  //   rv32_branch_cond:              [2:1] = 00 eq, 10 lt, 11 ltu; [0] inverts the condition
+  //   rv32_store_align, load_align:  [1:0] = 00 byte, 01 half, 10 word; [2] zero-extends a load
+  //   rv32_csr:                      [1:0] = 01 write, 10 set, 11 clear; [2] selects zimm, not rs1
 
   // mcause exception codes (privileged spec) that this core raises.
   typedef enum logic [3:0] {
@@ -124,16 +124,25 @@ package rv32_pkg;
     exc_cause_e      exc_cause;
     logic            csr;
     logic            mret;
-    logic            jal;
   } idex_t;
 
-  typedef enum logic [2: 0] { 
-    BRANCH_IF_EQ           = 3'b000,
-    BRANCH_IF_NOT_EQ       = 3'b001,
-    BRANCH_IF_LE           = 3'b100,
-    BRANCH_IF_GEQ          = 3'b101,
-    BRANCH_IF_LE_UNSIGNED  = 3'b110,
-    BRANCH_IF_GEQ_UNSIGNED = 3'b111
-  } branch_funct3_t;
+  // EX/MEM pipeline register, next to its exmem_valid bit. Loads and stores issued their request in
+  // EX, so only the response is handled in MEM.
+  typedef struct packed {
+    logic [XLEN-1:2] pc;
+    logic [XLEN-1:0] ex_result;   // ALU result, link/AUIPC value, load/store address, CSR operand
+    logic [11:0]     csr_addr;
+    logic [2:0]      funct3;
+    logic [4:0]      rd;
+    logic            rd_we;
+    logic            mem_re;
+    logic            mem_we;
+    logic            req;         // data request granted in EX: MEM waits for its response
+    logic            csr;
+    logic            csr_write;   // CSRRW, or CSRRS / CSRRC with a nonzero rs1 or zimm field
+    logic            mret;
+    logic            exc;         // exception from ID or EX: trap in MEM
+    exc_cause_e      exc_cause;
+  } exmem_t;
 
 endpackage

@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=13;align=right;" value="&lt;b&gt;RV32I 5-stage pipeline&lt;/b&gt; &amp;middot; datapath v0.5" vertex="1">
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=13;align=right;" value="&lt;b&gt;RV32I 5-stage pipeline&lt;/b&gt; &amp;middot; datapath v0.6" vertex="1">
           <mxGeometry height="26" width="580" x="-622" as="geometry" />
         </mxCell>
         <mxCell id="lg_box" parent="1" style="rounded=0;html=1;fillColor=#FFFFFF;strokeColor=#B0B0B0;" value="" vertex="1">
@@ -118,7 +118,7 @@
         <mxCell id="ALU" parent="1" style="shape=mxgraph.basic.polygon;polyCoords=[[0,0],[1,0.3],[1,0.7],[0,1],[0,0.6],[0.14,0.5],[0,0.4]];polyline=0;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=13;fontStyle=1;align=center;spacingLeft=14;fontFamily=Helvetica;" value="ALU" vertex="1">
           <mxGeometry height="220" width="90" x="-762" y="288" as="geometry" />
         </mxCell>
-        <mxCell id="RMUX" parent="1" style="shape=mxgraph.basic.polygon;polyCoords=[[0,0],[1,0.2],[1,0.8],[0,1]];polyline=0;html=1;fillColor=#F25757;strokeColor=#7A1010;fontColor=#FFFFFF;fontSize=9;fontStyle=1;horizontal=0;whiteSpace=wrap;fontFamily=Helvetica;" value="Result 5:1" vertex="1">
+        <mxCell id="RMUX" parent="1" style="shape=mxgraph.basic.polygon;polyCoords=[[0,0],[1,0.2],[1,0.8],[0,1]];polyline=0;html=1;fillColor=#F25757;strokeColor=#7A1010;fontColor=#FFFFFF;fontSize=9;fontStyle=1;horizontal=0;whiteSpace=wrap;fontFamily=Helvetica;" value="Result 3:1" vertex="1">
           <mxGeometry height="80" width="30" x="-632" y="378" as="geometry" />
         </mxCell>
         <mxCell id="STA" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;fontSize=10;" value="Store align&lt;br&gt;+ byte enables" vertex="1">
@@ -130,7 +130,7 @@
         <mxCell id="EXMEM_clk" parent="1" style="triangle;whiteSpace=wrap;html=1;direction=north;fillColor=#FFFFFF;strokeColor=#000000;" value="" vertex="1">
           <mxGeometry height="16" width="22" x="-543" y="742" as="geometry" />
         </mxCell>
-        <mxCell id="DMEM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;spacingLeft=12;" value="Data memory&lt;br&gt;D-TCM: 1RW SRAM&lt;br&gt;&lt;font style='font-size:9px'&gt;sync read, core-only&lt;/font&gt;" vertex="1">
+        <mxCell id="DMEM" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;spacingLeft=12;" value="Data memory&lt;br&gt;D-TCM: 1RW SRAM&lt;br&gt;&lt;font style='font-size:9px'&gt;grant at once, rdata next cycle&lt;/font&gt;" vertex="1">
           <mxGeometry height="110" width="150" x="-462" y="438" as="geometry" />
         </mxCell>
         <mxCell id="DMEM_strip" parent="1" style="rounded=0;html=1;fillColor=#084F8C;strokeColor=#063F73;" value="" vertex="1">
@@ -139,10 +139,10 @@
         <mxCell id="DMEM_clk" parent="1" style="triangle;whiteSpace=wrap;html=1;direction=north;fillColor=#FFFFFF;strokeColor=#000000;" value="" vertex="1">
           <mxGeometry height="16" width="22" x="-450" y="532" as="geometry" />
         </mxCell>
-        <mxCell id="LDA" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;fontSize=10;" value="Load align&lt;br&gt;+ sign-extend" vertex="1">
+        <mxCell id="LDA" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;fontSize=10;" value="Load align&lt;br&gt;+ sign-extend&lt;br&gt;&lt;font style='font-size:8px'&gt;rdata held while frozen&lt;/font&gt;" vertex="1">
           <mxGeometry height="45" width="150" x="-462" y="578" as="geometry" />
         </mxCell>
-        <mxCell id="OBI" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;fontSize=10;" value="OBI &amp;rarr; AXI4 / AXI4-Lite&lt;br&gt;&lt;font style='font-size:9px'&gt;non-posted &amp;middot; wait &amp;rarr; freeze&lt;/font&gt;" vertex="1">
+        <mxCell id="OBI" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;fontSize=10;" value="OBI &amp;rarr; AXI4 / AXI4-Lite&lt;br&gt;&lt;font style='font-size:9px'&gt;request in EX, response in MEM &amp;middot; wait &amp;rarr; freeze&lt;/font&gt;" vertex="1">
           <mxGeometry height="45" width="150" x="-462" y="658" as="geometry" />
         </mxCell>
         <mxCell id="WBM" parent="1" style="shape=mxgraph.basic.polygon;polyCoords=[[0,0],[1,0.2],[1,0.8],[0,1]];polyline=0;html=1;fillColor=#F25757;strokeColor=#7A1010;fontColor=#FFFFFF;fontSize=9;fontStyle=1;horizontal=0;whiteSpace=wrap;fontFamily=Helvetica;" value="WB 3:1" vertex="1">
@@ -328,28 +328,12 @@
           <mxGeometry height="12" width="80" x="-867" y="584" as="geometry" />
         </mxCell>
         <mxCell id="e44" edge="1" parent="1" source="MA" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.1136;entryDx=0;entryDy=0;" target="ALU" value="opA">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry relative="1" as="geometry" x="0.45" />
         </mxCell>
         <mxCell id="e45" edge="1" parent="1" source="MB" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.8409;entryDx=0;entryDy=0;" target="ALU" value="opB">
-          <mxGeometry relative="1" as="geometry" />
+          <mxGeometry relative="1" as="geometry" x="0.45" />
         </mxCell>
-        <mxCell id="e46" edge="1" parent="1" source="MA" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.25;entryDx=0;entryDy=0;" target="BCMP" value="">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="-792" y="313" />
-              <mxPoint x="-792" y="213" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e47" edge="1" parent="1" source="MB" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.675;entryDx=0;entryDy=0;" target="BCMP" value="">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="-782" y="473" />
-              <mxPoint x="-782" y="230" />
-            </Array>
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="e48" edge="1" parent="1" source="ALU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=0.1111;exitY=0.0318;exitDx=0;exitDy=0;entryX=0.1818;entryY=1.0;entryDx=0;entryDy=0;" target="BCMP" value="">
+        <mxCell id="e48" edge="1" parent="1" source="ALU" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=0.1111;exitY=0.0318;exitDx=0;exitDy=0;entryX=0.1818;entryY=1.0;entryDx=0;entryDy=0;" target="BCMP" value="eq, lt, ltu">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e49" edge="1" parent="1" source="BCMP" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=0.5;exitY=0.0;exitDx=0;exitDy=0;entryX=0.55;entryY=1.0;entryDx=0;entryDy=0;" target="REDIR" value="">
@@ -407,8 +391,8 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e59" edge="1" parent="1" source="IDEX" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.0234;exitDx=0;exitDy=0;entryX=0.0;entryY=0.0234;entryDx=0;entryDy=0;" target="EXMEM" value="mem_re/we, f3, rd_we, pc, exc">
-          <mxGeometry relative="1" x="0.6" as="geometry" />
+        <mxCell id="e59" edge="1" parent="1" source="IDEX" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.0234;exitDx=0;exitDy=0;entryX=0.0;entryY=0.0234;entryDx=0;entryDy=0;" target="EXMEM" value="pc, f3, rd_we, mem_re/we&lt;br&gt;csr, mret, exc">
+          <mxGeometry relative="1" x="-0.57" as="geometry" />
         </mxCell>
         <mxCell id="e60" edge="1" parent="1" source="IDEX" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.9375;exitDx=0;exitDy=0;entryX=0.0;entryY=0.9375;entryDx=0;entryDy=0;" target="EXMEM" value="rd /5">
           <mxGeometry relative="1" x="0.3" as="geometry" />
@@ -547,14 +531,11 @@
         <mxCell id="e77" edge="1" parent="1" source="WBM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.0;entryY=0.4688;entryDx=0;entryDy=0;" target="MEMWB" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="e78" edge="1" parent="1" source="EXMEM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.0234;exitDx=0;exitDy=0;entryX=0.0;entryY=0.0234;entryDx=0;entryDy=0;" target="MEMWB" value="rd_we, mem_re">
+        <mxCell id="e78" edge="1" parent="1" source="EXMEM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.0234;exitDx=0;exitDy=0;entryX=0.0;entryY=0.0234;entryDx=0;entryDy=0;" target="MEMWB" value="rd_we">
           <mxGeometry relative="1" x="0.3" as="geometry" />
         </mxCell>
         <mxCell id="e79" edge="1" parent="1" source="EXMEM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1.0;exitY=0.9375;exitDx=0;exitDy=0;entryX=0.0;entryY=0.9375;entryDx=0;entryDy=0;" target="MEMWB" value="rd /5">
           <mxGeometry relative="1" x="0.3" as="geometry" />
-        </mxCell>
-        <mxCell id="e80" edge="1" parent="1" source="EXMEM" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=1.0;exitY=0.8781;exitDx=0;exitDy=0;entryX=0.0;entryY=0.4889;entryDx=0;entryDy=0;" target="OBI" value="">
-          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e81" edge="1" parent="1" source="OBI" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=1.0;exitY=0.4889;exitDx=0;exitDy=0;" value="AXI4 / AXI4-Lite">
           <mxGeometry relative="1" as="geometry">
@@ -661,7 +642,7 @@
         <mxCell id="f_idex" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;ID/EX &amp;middot; ~188 b&lt;/b&gt;&lt;br&gt;valid &amp;middot; rs1 &amp;middot; rs2 &amp;middot; imm (32 each) &amp;middot; pc &amp;middot; alt_pc (30 each)&lt;br&gt;fwd_a/b 4 &amp;middot; opb_imm &amp;middot; alu_op 4 &amp;middot; rd_alt_pc &amp;middot; br/pred/jalr 3 &amp;middot; f3 3&lt;br&gt;mem_re/we 2 &amp;middot; rd 5 &amp;middot; rd_we &amp;middot; exc 5 &amp;middot; csr/mret 2" vertex="1">
           <mxGeometry height="54" width="310" x="-1077" y="866" as="geometry" />
         </mxCell>
-        <mxCell id="f_exmem" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;EX/MEM &amp;middot; 80 b&lt;/b&gt; (+37 bus path)&lt;br&gt;valid &amp;middot; ex_result 32 &amp;middot; rd 5 &amp;middot; rd_we &amp;middot; mem_re &amp;middot; f3 3&lt;br&gt;pc 30 &amp;middot; exc 5 &amp;middot; csr/mret 2 &amp;middot; bus: wdata 32 &amp;middot; be 4 &amp;middot; req 1&lt;br&gt;CSR: addr, zimm = ex_result[31:20], [19:15]; rs1 in wdata" vertex="1">
+        <mxCell id="f_exmem" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;EX/MEM &amp;middot; 95 b&lt;/b&gt;&lt;br&gt;valid &amp;middot; ex_result 32 &amp;middot; pc 30 &amp;middot; csr_addr 12 &amp;middot; rd 5 &amp;middot; f3 3&lt;br&gt;rd_we &amp;middot; mem_re/we 2 &amp;middot; req &amp;middot; csr &amp;middot; csr_write &amp;middot; mret &amp;middot; exc 5&lt;br&gt;ex_result: ALU, link / AUIPC, address or CSR operand" vertex="1">
           <mxGeometry height="62" width="240" x="-652" y="866" as="geometry" />
         </mxCell>
         <mxCell id="f_memwb" parent="1" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;fontSize=8;rounded=1;fillColor=#FFF4D6;strokeColor=#FFB300;" value="&lt;b&gt;MEM/WB &amp;middot; 39 b&lt;/b&gt;&lt;br&gt;valid 1 &amp;middot; wb_data 32 &amp;middot; rd 5 &amp;middot; rd_we 1" vertex="1">
@@ -690,10 +671,10 @@
             <mxPoint x="30" y="0" as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="CSR" value="&lt;b&gt;CSR + trap ctrl&lt;/b&gt;&lt;br&gt;Zicsr, M-mode&lt;br&gt;&lt;font style='font-size:9px'&gt;mstatus &amp;middot; mie/mip &amp;middot; mtvec &amp;middot; mepc &amp;middot; mcause&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
-          <mxGeometry x="-447" y="228" width="140" height="62" as="geometry" />
+        <mxCell id="CSR" value="&lt;b&gt;CSR + trap ctrl&lt;/b&gt;&lt;br&gt;Zicsr, M-mode&lt;br&gt;&lt;font style='font-size:9px'&gt;mstatus &amp;middot; mie/mip &amp;middot; mtvec&lt;br&gt;mepc &amp;middot; mcause &amp;middot; counters&lt;br&gt;exc &amp;middot; irq &amp;middot; mret &amp;rarr; trap&lt;/font&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="-447" y="223" width="140" height="62" as="geometry" h="76" />
         </mxCell>
-        <mxCell id="x_exmem_csr" value="pc, exc, csr&lt;br&gt;ex_result, wdata" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1;exitY=0.2203;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="EXMEM" target="CSR">
+        <mxCell id="x_exmem_csr" value="pc, exc, csr, mret&lt;br&gt;csr_addr, ex_result" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1;exitY=0.2203;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="EXMEM" target="CSR">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="x_irq" value="irq: meip, mtip" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;entryX=0.5714;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="CSR">
@@ -726,8 +707,8 @@
             <mxPoint x="-1190" y="750" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="t_freeze" value="freeze (bus wait in MEM)" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" vertex="1" parent="1">
-          <mxGeometry x="-1250" y="750" width="120" height="12" as="geometry" />
+        <mxCell id="t_freeze" value="freeze (gnt / rvalid wait)" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" vertex="1" parent="1">
+          <mxGeometry x="-1257" y="750" width="134" height="12" as="geometry" />
         </mxCell>
         <mxCell id="x_alt_sel" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="BTFN" target="ALTM">
           <mxGeometry relative="1" as="geometry">
@@ -739,6 +720,26 @@
         </mxCell>
         <mxCell id="t_alt_sel" value="alt sel, pred" style="text;html=1;align=center;verticalAlign=middle;fontSize=9;whiteSpace=wrap;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="-1146" y="538" width="64" height="12" as="geometry" />
+        </mxCell>
+        <mxCell id="x_f3" value="f3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1;strokeColor=#404040;dashed=1;exitX=1;exitY=0.1641;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="IDEX" target="BCMP">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="x_csr_op" value="csr: rs1 | zimm" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="MA" target="RMUX">
+          <mxGeometry relative="1" as="geometry" x="0.1">
+            <Array as="points">
+              <mxPoint x="-792" y="313" />
+              <mxPoint x="-792" y="573" />
+              <mxPoint x="-617" y="573" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="x_req_obi" value="req (comb.)" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#000000;exitX=1;exitY=0.9;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="STA" target="OBI">
+          <mxGeometry relative="1" as="geometry" x="0.55">
+            <Array as="points">
+              <mxPoint x="-497" y="658" />
+              <mxPoint x="-497" y="680.5" />
+            </Array>
+          </mxGeometry>
         </mxCell>
       </root>
     </mxGraphModel>
