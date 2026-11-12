@@ -25,7 +25,7 @@ module rv32_csr
   input  exc_cause_e      exc_cause_i,
   input  logic            irq_allowed_i,  // the instruction may be replaced by an interrupt
   input  logic            csr_i,
-  input  logic [11:0]     csr_addr_i,
+  input  csr_num_e        csr_addr_i,
   input  logic [1:0]      csr_op_i,       // funct3[1:0]: 01 write, 10 set, 11 clear
   input  logic            csr_write_i,    // the instruction writes the CSR
   input  logic [XLEN-1:0] csr_wdata_i,    // rs1 or zimm
@@ -36,28 +36,6 @@ module rv32_csr
   output logic            trap_o,         // redirect the fetch: exception, interrupt or MRET
   output logic [XLEN-1:2] trap_target_o
 );
-
-  localparam logic [11:0] CSR_MSTATUS   = 12'h300;
-  localparam logic [11:0] CSR_MISA      = 12'h301;
-  localparam logic [11:0] CSR_MIE       = 12'h304;
-  localparam logic [11:0] CSR_MTVEC     = 12'h305;
-  localparam logic [11:0] CSR_MSCRATCH  = 12'h340;
-  localparam logic [11:0] CSR_MEPC      = 12'h341;
-  localparam logic [11:0] CSR_MCAUSE    = 12'h342;
-  localparam logic [11:0] CSR_MTVAL     = 12'h343;
-  localparam logic [11:0] CSR_MIP       = 12'h344;
-  localparam logic [11:0] CSR_MCYCLE    = 12'hB00;
-  localparam logic [11:0] CSR_MINSTRET  = 12'hB02;
-  localparam logic [11:0] CSR_MCYCLEH   = 12'hB80;
-  localparam logic [11:0] CSR_MINSTRETH = 12'hB82;
-  localparam logic [11:0] CSR_MVENDORID = 12'hF11;
-  localparam logic [11:0] CSR_MARCHID   = 12'hF12;
-  localparam logic [11:0] CSR_MIMPID    = 12'hF13;
-  localparam logic [11:0] CSR_MHARTID   = 12'hF14;
-
-  localparam logic [XLEN-1:0] MISA_VALUE = 32'h4000_0100;  // MXL = 32 bits, extension I
-  localparam logic [3:0]      IRQ_CODE_TIMER    = 4'd7;
-  localparam logic [3:0]      IRQ_CODE_EXTERNAL = 4'd11;
 
   logic            mie_q, mpie_q;          // mstatus.MIE, mstatus.MPIE
   logic            mtie_q, meie_q;         // mie.MTIE, mie.MEIE
@@ -70,6 +48,9 @@ module rv32_csr
 
   logic            implemented, illegal;
   logic [XLEN-1:0] wdata;
+  mstatus_t        wdata_mstatus;
+  mix_t            wdata_mie;
+  mcause_t         wdata_mcause;
   logic            exc_take, irq_take, mret_take, csr_we, retire;
   logic            irq_timer, irq_external;
   logic [3:0]      cause_code;
@@ -79,15 +60,16 @@ module rv32_csr
   always_comb begin : csr_read
     implemented = 1'b1;
     unique case (csr_addr_i)
-      CSR_MSTATUS:   csr_rdata_o = {19'b0, 2'b11, 3'b0, mpie_q, 3'b0, mie_q, 3'b0};
+      CSR_MSTATUS:   csr_rdata_o = mstatus_t'{mpp: PRIV_LVL_M, mpie: mpie_q, mie: mie_q, default: '0};
       CSR_MISA:      csr_rdata_o = MISA_VALUE;
-      CSR_MIE:       csr_rdata_o = {20'b0, meie_q, 3'b0, mtie_q, 7'b0};
+      CSR_MIE:       csr_rdata_o = mix_t'{mei: meie_q, mti: mtie_q, default: '0};
       CSR_MTVEC:     csr_rdata_o = {mtvec_q, 2'b00};
       CSR_MSCRATCH:  csr_rdata_o = mscratch_q;
       CSR_MEPC:      csr_rdata_o = {mepc_q, 2'b00};
-      CSR_MCAUSE:    csr_rdata_o = {mcause_irq_q, 27'b0, mcause_code_q};
+      CSR_MCAUSE:    csr_rdata_o = mcause_t'{irq: mcause_irq_q, code: mcause_code_q,
+                                             default: '0};
       CSR_MTVAL:     csr_rdata_o = '0;
-      CSR_MIP:       csr_rdata_o = {20'b0, meip_q, 3'b0, mtip_q, 7'b0};
+      CSR_MIP:       csr_rdata_o = mix_t'{mei: meip_q, mti: mtip_q, default: '0};
       CSR_MCYCLE:    csr_rdata_o = mcycle_q[31:0];
       CSR_MCYCLEH:   csr_rdata_o = mcycle_q[63:32];
       CSR_MINSTRET:  csr_rdata_o = minstret_q[31:0];
@@ -112,6 +94,11 @@ module rv32_csr
     endcase
   end
 
+  // The value written, seen through the layout of the CSR it goes to.
+  assign wdata_mstatus = mstatus_t'(wdata);
+  assign wdata_mie     = mix_t'(wdata);
+  assign wdata_mcause  = mcause_t'(wdata);
+
   // ---- Trap decision --------------------------------------------------------------------------
 
   assign irq_external = meip_q & meie_q;
@@ -128,7 +115,7 @@ module rv32_csr
   // External interrupts have priority over the timer.
   always_comb begin : trap_cause
     if (irq_take) begin
-      cause_code = irq_external ? IRQ_CODE_EXTERNAL : IRQ_CODE_TIMER;
+      cause_code = irq_external ? IRQ_EXTERNAL : IRQ_TIMER;
     end else if (exc_i) begin
       cause_code = exc_cause_i;
     end else begin
@@ -174,19 +161,19 @@ module rv32_csr
     end else if (csr_we) begin
       unique case (csr_addr_i)
         CSR_MSTATUS: begin
-          mie_q  <= wdata[3];
-          mpie_q <= wdata[7];
+          mie_q  <= wdata_mstatus.mie;
+          mpie_q <= wdata_mstatus.mpie;
         end
         CSR_MIE: begin
-          mtie_q <= wdata[7];
-          meie_q <= wdata[11];
+          mtie_q <= wdata_mie.mti;
+          meie_q <= wdata_mie.mei;
         end
         CSR_MTVEC:    mtvec_q    <= wdata[XLEN-1:2];
         CSR_MSCRATCH: mscratch_q <= wdata;
         CSR_MEPC:     mepc_q     <= wdata[XLEN-1:2];
         CSR_MCAUSE: begin
-          mcause_irq_q  <= wdata[XLEN-1];
-          mcause_code_q <= wdata[3:0];
+          mcause_irq_q  <= wdata_mcause.irq;
+          mcause_code_q <= wdata_mcause.code;
         end
         default: ;
       endcase

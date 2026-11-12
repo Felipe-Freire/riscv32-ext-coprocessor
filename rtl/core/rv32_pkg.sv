@@ -1,8 +1,9 @@
 // RV32 core package: ISA encodings and the control types passed between the core units.
 //
-// Only definitions used by more than one unit live here. Encodings that only the decoder reads
-// (funct3/funct7 of OP and OP-IMM, the SYSTEM funct12 values) stay in the decoder. Pipeline:
-// docs/figures/core-datapath.drawio. Instructions, CSRs and traps: rtl/core/README.md.
+// Definitions used by more than one unit live here, and so do the CSR addresses and layouts, which
+// testbenches also read. Encodings that only the decoder reads (funct3/funct7 of OP and OP-IMM,
+// the SYSTEM funct12 values) stay in the decoder. Pipeline: docs/figures/core-datapath.drawio.
+// Instructions, CSRs and traps: rtl/core/README.md.
 package rv32_pkg;
 
   parameter int unsigned XLEN = 32;
@@ -42,6 +43,67 @@ package rv32_pkg;
     EXC_STORE_ACCESS_FAULT = 4'd7,
     EXC_ECALL_M            = 4'd11   // ECALL from M-mode
   } exc_cause_e;
+
+  // mcause interrupt codes (mcause.Interrupt set). A separate type, because the values overlap the
+  // exception codes: 7 is also a store access fault, 11 an ECALL.
+  typedef enum logic [3:0] {
+    IRQ_TIMER    = 4'd7,     // MTI
+    IRQ_EXTERNAL = 4'd11     // MEI
+  } irq_cause_e;
+
+  // ===========================================================================================
+  // Machine-mode CSRs
+  // ===========================================================================================
+
+  // Addresses of the implemented CSRs
+  typedef enum logic [11:0] {
+    CSR_MSTATUS   = 12'h300,
+    CSR_MISA      = 12'h301,
+    CSR_MIE       = 12'h304,
+    CSR_MTVEC     = 12'h305,
+    CSR_MSCRATCH  = 12'h340,
+    CSR_MEPC      = 12'h341,
+    CSR_MCAUSE    = 12'h342,
+    CSR_MTVAL     = 12'h343,
+    CSR_MIP       = 12'h344,
+    CSR_MCYCLE    = 12'hB00,
+    CSR_MINSTRET  = 12'hB02,
+    CSR_MCYCLEH   = 12'hB80,
+    CSR_MINSTRETH = 12'hB82,
+    CSR_MVENDORID = 12'hF11,
+    CSR_MARCHID   = 12'hF12,
+    CSR_MIMPID    = 12'hF13,
+    CSR_MHARTID   = 12'hF14
+  } csr_num_e;
+
+  parameter logic [XLEN-1:0] MISA_VALUE = 32'h4000_0100;  // MXL = 32 bits, extension I
+  parameter logic [1:0]      PRIV_LVL_M = 2'b11;          // the only privilege level
+
+  // Layouts of the CSRs with fields
+  typedef struct packed {
+    logic [18:0] unused_31_13;
+    logic [1:0]  mpp;            // privilege before the trap: always M
+    logic [2:0]  unused_10_8;
+    logic        mpie;
+    logic [2:0]  unused_6_4;
+    logic        mie;
+    logic [2:0]  unused_2_0;
+  } mstatus_t;
+
+  // mie and mip: one bit per interrupt, at the position of its interrupt code.
+  typedef struct packed {
+    logic [19:0] unused_31_12;
+    logic        mei;            // MEIE / MEIP: external (IRQ_EXTERNAL)
+    logic [2:0]  unused_10_8;
+    logic        mti;            // MTIE / MTIP: timer (IRQ_TIMER)
+    logic [6:0]  unused_6_0;
+  } mix_t;
+
+  typedef struct packed {
+    logic        irq;            // interrupt, otherwise exception
+    logic [26:0] unused_30_4;
+    logic [3:0]  code;           // exc_cause_e or irq_cause_e
+  } mcause_t;
 
   // ===========================================================================================
   // Control passed from decode to execute
@@ -131,7 +193,7 @@ package rv32_pkg;
   typedef struct packed {
     logic [XLEN-1:2] pc;
     logic [XLEN-1:0] ex_result;   // ALU result, link/AUIPC value, load/store address, CSR operand
-    logic [11:0]     csr_addr;
+    csr_num_e        csr_addr;
     logic [2:0]      funct3;
     logic [4:0]      rd;
     logic            rd_we;
