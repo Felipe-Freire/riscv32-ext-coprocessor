@@ -122,7 +122,6 @@ module rv32_id_stage
     idex_d.branch     = ctrl.branch;
     idex_d.pred_taken = pred_taken;
     idex_d.jalr       = ctrl.jalr;
-    idex_d.jal        = ctrl.jal;
     idex_d.funct3     = ifid_instr_i[14:12];
     idex_d.mem_re     = ctrl.mem_re;
     idex_d.mem_we     = ctrl.mem_we;

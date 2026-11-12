@@ -54,7 +54,7 @@ There is no interrupt controller: each source drives one core input.
 
 | Interface | From → to | Protocol | Data bits |
 |---|---|---|---|
-| Instruction fetch | Core → Boot ROM, I-TCM | OBI subset: always granted, data one cycle later | 32 |
+| Instruction fetch | Core → Boot ROM, I-TCM | OBI subset: always granted, data one cycle later, held while the request is low | 32 |
 | Data | Core → D-TCM, bus bridges | OBI | 32 |
 | Data bus | Core (OBI → AXI4 bridge), DMA → L2 | AXI4 | 128 |
 | Control bus | Core (OBI → AXI4-Lite bridge) → timer, DMA, coprocessor registers | AXI4-Lite | 32 |
