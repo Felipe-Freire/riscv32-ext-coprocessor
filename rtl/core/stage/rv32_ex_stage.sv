@@ -144,7 +144,7 @@ module rv32_ex_stage
 
   always_comb begin : exmem_next
     exmem_d.pc        = idex_i.pc;
-    exmem_d.csr_addr  = idex_i.imm[31:20];
+    exmem_d.csr_addr  = csr_num_e'(idex_i.imm[31:20]);
     exmem_d.funct3    = idex_i.funct3;
     exmem_d.rd        = idex_i.rd;
     exmem_d.rd_we     = idex_i.rd_we;
