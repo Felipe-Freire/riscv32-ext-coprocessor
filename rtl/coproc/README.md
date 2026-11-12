@@ -15,6 +15,21 @@ After `START`, the array computes the 8×8 tiles of C in row-major tile order: (
 one of each per step, then sends the tile's 16 beats on the C stream. It stalls while an input
 FIFO is empty or the C FIFO is full. `DONE` is set after the last C beat.
 
+## Modules
+
+| Module | Function |
+|---|---|
+| `coproc_pkg` | Datapath types (`data_t` int8, `acc_t` int32) and the array size `ARRAY_DIM` |
+| `coproc_mac` | `acc = acc + a*b`, one accumulator, cleared at the first step of a tile |
+| `coproc_pe` | Processing element: a `coproc_mac` plus the registers that pass `a` east and `b` south |
+| `coproc_demux` | One-hot fan-out, used to load one edge of the array per cycle from a single port |
+| `coproc_pe_array` | `Dim x Dim` PEs with the `clr` pulse pipelined along the same diagonal as the operands |
+
+`coproc_pe_array` computes one tile from already-skewed edge streams: `a_i[r]` carries `A[r][k]`
+at step `k+r` and `b_i[c]` carries `B[k][c]` at step `k+c`, and a tile is `K` steps of data plus
+`2*(Dim-1)` drain steps. The skew and drain logic, the tile sequencer that walks the tiles of C,
+the AXI4-Lite registers, the stream FIFOs and the CDC are not written yet.
+
 ## Matrix layout
 
 The matrices are stored in the order the array consumes them:
