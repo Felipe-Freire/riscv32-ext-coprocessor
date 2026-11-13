@@ -8,6 +8,11 @@ critical path is one int8 multiply plus one int32 add.
 The array runs on its own clock (`clk_acc_i`). The asynchronous FIFOs on the streams and the CDC
 on the register port belong to this block, so all its other ports are in the system clock domain.
 
+> **Implementation status.** `coproc_top` implements the datapath and the sequencer in a single
+> clock domain (`clk_i`) and exposes the configuration as plain wires instead of AXI4-Lite
+> registers: see [block top](#block-top). The register block, the second clock domain and the
+> stream FIFOs are not written yet, and adding them does not change the stream ports.
+
 ## Operation
 
 After `START`, the array computes the 8×8 tiles of C in row-major tile order: (0,0), (0,1), …,
@@ -24,11 +29,35 @@ FIFO is empty or the C FIFO is full. `DONE` is set after the last C beat.
 | `coproc_pe` | Processing element: a `coproc_mac` plus the registers that pass `a` east and `b` south |
 | `coproc_demux` | One-hot fan-out, used to load one edge of the array per cycle from a single port |
 | `coproc_pe_array` | `Dim x Dim` PEs with the `clr` pulse pipelined along the same diagonal as the operands |
+| `coproc_skew` | Delay line per array edge: lane `l` is delayed by `l` steps, which skews a stream beat into the diagonal the array expects |
+| `coproc_top` | Block top: the two skew units, the array, the tile sequencer and the C beat mux |
 
 `coproc_pe_array` computes one tile from already-skewed edge streams: `a_i[r]` carries `A[r][k]`
 at step `k+r` and `b_i[c]` carries `B[k][c]` at step `k+c`, and a tile is `K` steps of data plus
-`2*(Dim-1)` drain steps. The skew and drain logic, the tile sequencer that walks the tiles of C,
-the AXI4-Lite registers, the stream FIFOs and the CDC are not written yet.
+`2*(Dim-1)` drain steps. `coproc_skew` produces that skew from a stream beat, so `coproc_top`
+feeds beat `k` of a tile in at step `k` and then runs the drain steps, which also flush the delay
+lines before the next tile. The AXI4-Lite registers, the stream FIFOs and the CDC are not written
+yet. `coproc_demux` is unused by `coproc_top`, which loads a whole array edge per beat.
+
+### Block top
+
+`coproc_top` is the module `soc_top` instantiates. Its sequencer walks the tiles of C in row-major
+tile order and, per tile, runs four phases:
+
+| Phase | Steps | Array | Streams |
+|---|---|---|---|
+| Load | `K` | `en` on a step, `clr` on the first | One A and one B beat per step, taken together |
+| Drain | `2*(Dim-1)` | `en`, zeros on both edges | — |
+| Out | `Dim*Dim*32 / 128` = 16 | Held | One C beat per accepted handshake |
+| Next | — | — | Back to Load, or `DONE` after the last tile |
+
+A step happens only when both input streams have a beat, so an empty A or B stream stalls the
+array, and a tile is held in the accumulators until the C stream has taken all of its beats.
+Because each tile takes `K` beats from each stream, the A panel of a tile row is streamed again
+for every tile column: that is the DMA's A descriptor, not state inside this block.
+
+Parameters: `Dim` (array side, default `ARRAY_DIM`) and `CDataWidth` (C stream width, default
+128). `M` and `N` reach the block only as the tile counts `M/Dim` and `N/Dim`.
 
 ## Matrix layout
 
@@ -60,14 +89,22 @@ for DMA channel 2, which finishes after the last C beat is in L2.
 
 ## Ports
 
+Ports of `coproc_top` as it is implemented:
+
 | Port | Dir | Description |
 |---|---|---|
-| `clk_i`, `rst_ni` | in | System clock and reset (register and stream ports) |
-| `clk_acc_i`, `rst_acc_ni` | in | Array clock and reset |
-| `reg_req_i`, `reg_rsp_o` | in, out | AXI4-Lite slave: registers |
+| `clk_i`, `rst_ni` | in | Clock and reset of the whole block |
+| `start_i` | in | Single-cycle pulse that starts a run; ignored while `busy_o` is set |
+| `dim_m_i`, `dim_n_i`, `dim_k_i` | in | Dimensions, sampled with `start_i` |
+| `busy_o` | out | A run is in progress |
+| `done_o` | out | Single-cycle pulse, in the cycle after the last C beat is accepted |
 | `a_tdata_i[63:0]`, `a_tvalid_i`, `a_tready_o` | in, in, out | A stream |
 | `b_tdata_i[63:0]`, `b_tvalid_i`, `b_tready_o` | in, in, out | B stream |
 | `c_tdata_o[127:0]`, `c_tvalid_o`, `c_tready_i` | out, out, in | C stream |
+
+The spec'd block adds the register and clock ports around this: `clk_acc_i` and `rst_acc_ni` for
+the array domain, and `reg_req_i` / `reg_rsp_o` as an AXI4-Lite slave in place of the
+configuration and status wires above.
 
 ---
 [← Back to RTL](../README.md)
