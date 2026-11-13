@@ -133,7 +133,8 @@ module rv32_ex_stage
     end
   end
 
-  assign data_req_o  = idex_valid_i & mem_op & ~exc & ~trap_i & ~mem_wait_i;
+  assign data_req_o  = idex_valid_i & mem_op & ~idex_i.exc & ~access_misaligned
+                     & ~trap_i & ~mem_wait_i;
   assign data_addr_o = adder;
   assign data_we_o   = idex_i.mem_we;
   assign req_wait_o  = data_req_o & ~data_gnt_i;
