@@ -59,7 +59,7 @@ make help                 # list available targets
 |---|---|
 | SystemVerilog/UVM simulator | UVM simulation (to be defined) |
 | RISC-V GNU toolchain (`riscv64-unknown-elf-gcc`) | Building programs in [`sw/`](sw/README.md) |
-| ASIC synthesis tool and PDK | Synthesis in [`syn/`](syn/README.md) (to be defined) |
+| Cadence Genus (`genus`) | Synthesis in [`syn/`](syn/README.md) (PDK to be defined) |
 
 Detailed setup instructions will live in [`docs/guides/`](docs/README.md#guides).
 
