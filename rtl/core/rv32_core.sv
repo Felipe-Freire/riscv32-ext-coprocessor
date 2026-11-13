@@ -65,12 +65,12 @@ module rv32_core
   rv32_if_stage #(
     .BootAddr(BootAddr)
   ) u_if_stage (
-    .clk_i,
-    .rst_ni,
-    .instr_req_o,
-    .instr_addr_o,
-    .instr_rdata_i,
-    .instr_err_i,
+    .clk_i        (clk_i),
+    .rst_ni       (rst_ni),
+    .instr_req_o  (instr_req_o),
+    .instr_addr_o (instr_addr_o),
+    .instr_rdata_i(instr_rdata_i),
+    .instr_err_i  (instr_err_i),
     .stall_i      (stall),
     .id_redirect_i(id_redirect),
     .id_target_i  (id_target),
@@ -86,8 +86,8 @@ module rv32_core
   );
 
   rv32_id_stage u_id_stage (
-    .clk_i,
-    .rst_ni,
+    .clk_i        (clk_i),
+    .rst_ni       (rst_ni),
     .ex_redirect_i(ex_redirect),
     .trap_i       (trap),
     .freeze_i     (freeze),
@@ -110,14 +110,14 @@ module rv32_core
   );
 
   rv32_ex_stage u_ex_stage (
-    .clk_i,
-    .rst_ni,
-    .data_req_o,
-    .data_gnt_i,
-    .data_addr_o,
-    .data_we_o,
-    .data_be_o,
-    .data_wdata_o,
+    .clk_i        (clk_i),
+    .rst_ni       (rst_ni),
+    .data_req_o   (data_req_o),
+    .data_gnt_i   (data_gnt_i),
+    .data_addr_o  (data_addr_o),
+    .data_we_o    (data_we_o),
+    .data_be_o    (data_be_o),
+    .data_wdata_o (data_wdata_o),
     .trap_i       (trap),
     .freeze_i     (freeze),
     .mem_wait_i   (mem_wait),
@@ -132,25 +132,25 @@ module rv32_core
   );
 
   rv32_mem_stage u_mem_stage (
-    .clk_i,
-    .rst_ni,
-    .data_gnt_i,
-    .data_rvalid_i,
-    .data_rdata_i,
-    .data_err_i,
-    .irq_timer_i,
-    .irq_external_i,
-    .freeze_i     (freeze),
-    .ex_req_i     (data_req_o),
-    .exmem_valid_i(exmem_valid),
-    .exmem_i      (exmem),
-    .mem_wait_o   (mem_wait),
-    .trap_o       (trap),
-    .trap_target_o(trap_target),
-    .memwb_valid_o(memwb_valid),
-    .memwb_rd_o   (memwb_rd),
-    .memwb_rd_we_o(memwb_rd_we),
-    .memwb_data_o (memwb_data)
+    .clk_i         (clk_i),
+    .rst_ni        (rst_ni),
+    .data_gnt_i    (data_gnt_i),
+    .data_rvalid_i (data_rvalid_i),
+    .data_rdata_i  (data_rdata_i),
+    .data_err_i    (data_err_i),
+    .irq_timer_i   (irq_timer_i),
+    .irq_external_i(irq_external_i),
+    .freeze_i      (freeze),
+    .ex_req_i      (data_req_o),
+    .exmem_valid_i (exmem_valid),
+    .exmem_i       (exmem),
+    .mem_wait_o    (mem_wait),
+    .trap_o        (trap),
+    .trap_target_o (trap_target),
+    .memwb_valid_o (memwb_valid),
+    .memwb_rd_o    (memwb_rd),
+    .memwb_rd_we_o (memwb_rd_we),
+    .memwb_data_o  (memwb_data)
   );
 
 endmodule
