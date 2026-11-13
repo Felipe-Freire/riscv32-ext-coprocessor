@@ -26,3 +26,15 @@ if {[sizeof_collection $rst_ports] > 0} {
 
 set_input_delay  $io_delay -clock clk $in_ports
 set_output_delay $io_delay -clock clk [all_outputs]
+
+# The neighbouring block is made of real cells: its outputs drive our inputs through a small
+# buffer, and our outputs load a few of its inputs. 0.01 is in the Liberty capacitance unit
+# (pF for gsclib045: 10 fF, a handful of gate inputs). The tutorial library has no BUFX2, so
+# there the inputs keep an ideal driver.
+if {[sizeof_collection [get_lib_cells -quiet */BUFX2]] > 0} {
+  set_driving_cell -lib_cell BUFX2 $in_ports
+}
+set_load 0.01 [all_outputs]
+
+# Margin for the clock tree, which synthesis treats as ideal: skew and jitter.
+set_clock_uncertainty [expr {0.05 * $::clk_period}] [get_clocks clk]
