@@ -81,7 +81,7 @@ module rv32_id_stage
     .jalr_i       (ctrl.jalr),
     .pc_i         (ifid_pc_i),
     .pc_next_i    (pc_i),
-    .imm_i        (imm[XLEN-1:2]),
+    .instr_i      (ifid_instr_i),
     .id_redirect_o,
     .id_target_o,
     .pred_taken_o (pred_taken),
