@@ -6,8 +6,8 @@ goals are in the [verification plan](../docs/README.md#verification).
 | Directory | Contents |
 |---|---|
 | [`unit/`](unit/) | Directed, self-checking testbenches: `unit/<block>/tb_<module>.sv` |
-| [`uvm/`](uvm/) | UVM agents (`agents/`) and environments (`core/`, `core_pc/` for `rv32_pc`, `coproc/`, `top/`) |
-| [`models/`](models/) | Reference models |
+| [`uvm/`](uvm/) | UVM agents (`agents/`) and environments (`core/`, `core_pc/` for `rv32_pc`, [`coproc/`](uvm/coproc/README.md), `top/`) |
+| [`models/`](models/) | Reference models: the coprocessor golden model in `models/coproc/` |
 | [`assertions/`](assertions/) | SVA properties, attached to the RTL through `bind` files |
 | [`regress/`](regress/) | Regression lists |
 
@@ -31,7 +31,8 @@ xrun -sv -timescale 1ns/1ps -f $PROJ_ROOT/rtl/core/core.f \
 ## UVM environments
 
 Each `uvm/<block>/` has `tb/`, `env/`, `seq/` and `tests/`. Classes go one per file (`.svh`),
-named after the class and included by one package per agent or environment.
+named after the class and included by one package per agent or environment. Tests and the run
+command of the coprocessor environment: [`uvm/coproc`](uvm/coproc/README.md).
 
 ```bash
 export PROJ_ROOT=$(git rev-parse --show-toplevel)
