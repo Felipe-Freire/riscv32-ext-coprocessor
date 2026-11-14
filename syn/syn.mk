@@ -6,7 +6,7 @@ SYN_BLOCKS       := core coproc
 SYN_FLIST_core   := $(PROJ_ROOT)/rtl/core/core.f
 SYN_TOP_core     := rv32_core
 SYN_FLIST_coproc := $(PROJ_ROOT)/rtl/coproc/coproc.f
-SYN_TOP_coproc   := coproc_pe_array
+SYN_TOP_coproc   := coproc_top
 
 BLOCK      ?= core
 TOP        ?= $(SYN_TOP_$(BLOCK))
@@ -21,10 +21,11 @@ GENUS      ?= genus
 #   LIBS=   (empty) Genus tutorial library, no physical data
 #   LEFS=   (empty) zero wire load instead of physical-aware estimation (PLE)
 # gsclib045_svt_v4.4 is not usable: it ships LEF and QRC but no Liberty files.
-GPDK045    ?= /apps/cds/installs/STRATUS2501/share/stratus/techlibs/GPDK045
-VT         ?= svt
-CORNER     ?= slow_vdd1v0
-RC_CORNER  ?= rcworst
+GPDK045      ?= /apps/cds/installs/STRATUS2501/share/stratus/techlibs/GPDK045
+VT           ?= svt
+CORNER       ?= slow_vdd1v0
+RC_CORNER    ?= rcworst
+CLOCK_GATING ?= 1
 
 GSC_SUFFIX_svt :=
 GSC_SUFFIX_lvt := _lvt
@@ -52,7 +53,7 @@ syn:
 	@mkdir -p $(SYN_RUN_DIR)
 	cd $(SYN_RUN_DIR) && \
 	  SYN_TOP=$(TOP) SYN_FLIST="$(SYN_FLIST_$(BLOCK))" SYN_SDC=$(SYN_SDC) \
-	  SYN_CLK_PERIOD=$(CLK_PERIOD) SYN_EFFORT=$(EFFORT) \
+	  SYN_CLK_PERIOD=$(CLK_PERIOD) SYN_EFFORT=$(EFFORT) SYN_CLOCK_GATING=$(CLOCK_GATING) \
 	  SYN_LIBS="$(abspath $(LIBS))" SYN_LEFS="$(abspath $(LEFS))" SYN_QRC="$(abspath $(QRC))" \
 	  $(GENUS) -batch -no_gui -abort_on_error -overwrite -log genus \
 	    -files $(PROJ_ROOT)/syn/genus/syn.tcl

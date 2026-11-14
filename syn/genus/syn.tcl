@@ -78,6 +78,13 @@ read_sdc -stop_on_errors $sdc
 
 # ---- Synthesis --------------------------------------------------------------------------------
 
+# Registers that share an enable get one integrated clock-gating cell instead of an enable mux in
+# every flop: smaller flops with less setup, and no clock toggling while the array holds.
+# SYN_CLOCK_GATING=0 turns it off, to compare both versions in the area x f_max study.
+if {[syn_env_opt SYN_CLOCK_GATING] ne "0"} {
+  set_db lp_insert_clock_gating true
+}
+
 syn_generic
 syn_map
 syn_opt   ;# not -logical/-spatial: they need a license feature the CEPEDI server lacks
@@ -89,11 +96,13 @@ file mkdir reports outputs
 report_qor                   > reports/qor.rpt
 report_area                  > reports/area.rpt
 report_gates                 > reports/gates.rpt
-report_timing -max_paths 10  > reports/timing.rpt
+report_timing -max_paths 10  > reports/timing.rpt 
 report_power                 > reports/power.rpt
 check_design -all            > reports/check_design.rpt
 check_timing_intent -verbose > reports/timing_intent.rpt
 report_messages              > reports/messages.rpt
+
+report_timing -from [all_registers] -to [all_registers] -max_paths 5 > reports/timing_reg2reg.rpt
 
 write_hdl > outputs/$top.v
 write_sdc > outputs/$top.sdc
