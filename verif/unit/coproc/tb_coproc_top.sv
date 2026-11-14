@@ -1,17 +1,13 @@
-// coproc_top: random M x K by K x N products against a behavioural reference, driven through the
-// three streams the SoC uses. The A and B drivers and the C monitor back off at random, so the
-// sequencer is exercised with empty input streams and with a stalled output stream. The skew,
-// the drain and the tile sequencing are covered through the block; the array has its own
-// testbench.
-//
-// Stream convention in this testbench: signals are driven 1 ns after a rising edge and sampled
-// on the falling edge, where the combinational ready and valid of the cycle have settled; a beat
-// whose handshake holds at that falling edge transfers on the next rising edge.
-module tb_coproc_top;
+// Testbench Unitário do Acelerador (coproc_core)
+// Emula o comportamento do DMA nos streams A, B e C.
+module tb_coproc_unit #(
+  parameter int unsigned Dim        = 4,
+  parameter int unsigned CDataWidth = Dim * coproc_pkg::ACC_W
+) (
+  output int total_errors,
+  output int total_checks
+);
   import coproc_pkg::*;
-
-  localparam int unsigned Dim        = 4;    // smaller than the 8x8 array, same structure
-  localparam int unsigned CDataWidth = 128;
 
   localparam int unsigned AbW          = Dim * DATA_W;
   localparam int unsigned WordsPerBeat = CDataWidth / ACC_W;
@@ -35,8 +31,11 @@ module tb_coproc_top;
   logic                  c_tvalid, c_tready;
 
   int errors = 0, checks = 0;
+  assign total_errors = errors;
+  assign total_checks = checks;
 
-  coproc_top #(
+  // Instancia diretamente o núcleo do acelerador (sem AXI-Lite e sem CDC)
+  coproc_core #(
     .Dim       (Dim       ),
     .CDataWidth(CDataWidth)
   ) dut (
@@ -61,14 +60,12 @@ module tb_coproc_top;
 
   always #5 clk = ~clk;
 
-  // The matrices of the run in progress and the product they should produce.
   data_t mat_a [MaxM][MaxK];
   data_t mat_b [MaxK][MaxN];
   acc_t  mat_c [MaxM][MaxN];
 
-  task automatic randomize_matrices(int m, int n, int k);
-    foreach (mat_a[r, kk]) mat_a[r][kk] = data_t'($urandom());
-    foreach (mat_b[kk, c]) mat_b[kk][c] = data_t'($urandom());
+  // Modelo de referência comportamental
+  task automatic compute_reference(int m, int n, int k);
     for (int r = 0; r < m; r++) begin
       for (int c = 0; c < n; c++) begin
         mat_c[r][c] = '0;
@@ -79,9 +76,29 @@ module tb_coproc_top;
     end
   endtask
 
-  // A driver: for every tile, in row-major tile order, the K beats of that tile row's A panel.
-  // One beat is A[Dim*ti+r][k] for every r, element r in byte lane r.
-  task automatic drive_a(int m, int n, int k);
+  task automatic randomize_matrices(int m, int n, int k);
+    foreach (mat_a[r, kk]) mat_a[r][kk] = data_t'($urandom());
+    foreach (mat_b[kk, c]) mat_b[kk][c] = data_t'($urandom());
+    compute_reference(m, n, k);
+  endtask
+
+  // Dados manuais determinísticos para inspeção visual na onda e no log
+  task automatic load_manual_matrices(int m, int n, int k);
+    for (int r = 0; r < m; r++) begin
+      for (int kk = 0; kk < k; kk++) begin
+        mat_a[r][kk] = data_t'(r + kk + 1);
+      end
+    end
+    for (int kk = 0; kk < k; kk++) begin
+      for (int c = 0; c < n; c++) begin
+        mat_b[kk][c] = (kk == c) ? data_t'(2) : data_t'(1);
+      end
+    end
+    compute_reference(m, n, k);
+  endtask
+
+  // Driver DMA Canal A
+  task automatic drive_a(int m, int n, int k, bit random_stalls = 1'b1);
     logic [AbW-1:0] beat;
     for (int ti = 0; ti < m / int'(Dim); ti++) begin
       for (int tj = 0; tj < n / int'(Dim); tj++) begin
@@ -90,7 +107,7 @@ module tb_coproc_top;
           for (int r = 0; r < int'(Dim); r++) begin
             beat[r*DATA_W +: DATA_W] = mat_a[int'(Dim)*ti + r][kk];
           end
-          while ($urandom_range(3) == 0) begin  // random gaps in the stream
+          while (random_stalls && ($urandom_range(3) == 0)) begin
             a_tvalid = 1'b0;
             @(posedge clk);
             #1;
@@ -100,7 +117,7 @@ module tb_coproc_top;
           do begin
             @(negedge clk);
           end while (!a_tready);
-          @(posedge clk);  // the beat transfers here
+          @(posedge clk);
           #1;
           a_tvalid = 1'b0;
         end
@@ -108,8 +125,8 @@ module tb_coproc_top;
     end
   endtask
 
-  // B driver: the K beats of the tile column's B panel, one beat B[k][Dim*tj+c] for every c.
-  task automatic drive_b(int m, int n, int k);
+  // Driver DMA Canal B
+  task automatic drive_b(int m, int n, int k, bit random_stalls = 1'b1);
     logic [AbW-1:0] beat;
     for (int ti = 0; ti < m / int'(Dim); ti++) begin
       for (int tj = 0; tj < n / int'(Dim); tj++) begin
@@ -118,7 +135,7 @@ module tb_coproc_top;
           for (int c = 0; c < int'(Dim); c++) begin
             beat[c*DATA_W +: DATA_W] = mat_b[kk][int'(Dim)*tj + c];
           end
-          while ($urandom_range(3) == 0) begin
+          while (random_stalls && ($urandom_range(3) == 0)) begin
             b_tvalid = 1'b0;
             @(posedge clk);
             #1;
@@ -136,9 +153,8 @@ module tb_coproc_top;
     end
   endtask
 
-  // C monitor: every beat is checked against the reference as it arrives, in the order the block
-  // sends the tiles and the rows inside a tile.
-  task automatic check_c(int m, int n, int k);
+  // Monitor DMA Canal C
+  task automatic check_c(int m, int n, int k, bit random_stalls = 1'b1, bit verbose = 1'b0);
     int   row, col_base;
     acc_t got, exp;
     for (int ti = 0; ti < m / int'(Dim); ti++) begin
@@ -146,7 +162,7 @@ module tb_coproc_top;
         for (int beat = 0; beat < int'(BeatsPerTile); beat++) begin
           row      = beat / int'(BeatsPerRow);
           col_base = (beat % int'(BeatsPerRow)) * int'(WordsPerBeat);
-          while ($urandom_range(3) == 0) begin  // random back-pressure
+          while (random_stalls && ($urandom_range(3) == 0)) begin
             c_tready = 1'b0;
             @(posedge clk);
             #1;
@@ -159,15 +175,19 @@ module tb_coproc_top;
             got = acc_t'(c_tdata[w*ACC_W +: ACC_W]);
             exp = mat_c[int'(Dim)*ti + row][int'(Dim)*tj + col_base + w];
             checks++;
+            if (verbose) begin
+              $display("  [Array %0dx%0d] C[%0d][%0d] = %0d (Esperado: %0d)",
+                       Dim, Dim, int'(Dim)*ti + row, int'(Dim)*tj + col_base + w, got, exp);
+            end
             if (got !== exp) begin
               errors++;
               if (errors <= 10) begin
-                $display("FAIL: M=%0d N=%0d K=%0d C[%0d][%0d]=%0d expected=%0d",
-                         m, n, k, int'(Dim)*ti + row, int'(Dim)*tj + col_base + w, got, exp);
+                $display("FAIL [Array %0dx%0d]: M=%0d N=%0d K=%0d C[%0d][%0d]=%0d expected=%0d",
+                         Dim, Dim, m, n, k, int'(Dim)*ti + row, int'(Dim)*tj + col_base + w, got, exp);
               end
             end
           end
-          @(posedge clk);  // the beat transfers here
+          @(posedge clk);
           #1;
           c_tready = 1'b0;
         end
@@ -175,40 +195,43 @@ module tb_coproc_top;
     end
   endtask
 
-  task automatic run(int m, int n, int k);
-    randomize_matrices(m, n, k);
+  task automatic run_case(int m, int n, int k, bit manual_mode = 1'b0);
+    if (manual_mode) begin
+      $display("--- Teste Manual Deterministico [Array %0dx%0d | M=%0d, N=%0d, K=%0d] ---", Dim, Dim, m, n, k);
+      load_manual_matrices(m, n, k);
+    end else begin
+      randomize_matrices(m, n, k);
+    end
 
     dim_m = dim_t'(m);
     dim_n = dim_t'(n);
     dim_k = dim_t'(k);
     start = 1'b1;
-    @(posedge clk);  // start is taken here
+    @(posedge clk);
     #1;
     start = 1'b0;
 
     fork
-      drive_a(m, n, k);
-      drive_b(m, n, k);
-      check_c(m, n, k);
+      drive_a(m, n, k, !manual_mode);
+      drive_b(m, n, k, !manual_mode);
+      check_c(m, n, k, !manual_mode, manual_mode);
     join
 
-    // The last C beat has just transferred: done_o is set by that same edge and busy_o has
-    // dropped with it.
     checks += 2;
     if (!done) begin
       errors++;
-      $display("FAIL: M=%0d N=%0d K=%0d no done pulse on the last C beat", m, n, k);
+      $display("FAIL [Array %0dx%0d]: M=%0d N=%0d K=%0d sem pulso done_o", Dim, Dim, m, n, k);
     end
     if (busy) begin
       errors++;
-      $display("FAIL: M=%0d N=%0d K=%0d still busy after the last C beat", m, n, k);
+      $display("FAIL [Array %0dx%0d]: M=%0d N=%0d K=%0d busy_o alto apos termino", Dim, Dim, m, n, k);
     end
 
     @(posedge clk);
     #1;
   endtask
 
-  initial begin
+  task automatic run_suite();
     rst_n    = 1'b0;
     start    = 1'b0;
     a_tvalid = 1'b0;
@@ -224,18 +247,51 @@ module tb_coproc_top;
     @(posedge clk);
     #1;
 
-    // One tile, the smallest run, then larger tile grids. Every run starts on an array that
-    // still holds the previous run's accumulators, so the clr path is exercised throughout.
-    run(int'(Dim), int'(Dim), 1);
-    run(int'(Dim), int'(Dim), int'(MaxK));
-    run(2 * int'(Dim), int'(Dim), 3);
-    run(int'(Dim), 2 * int'(Dim), 5);
-    run(2 * int'(Dim), 2 * int'(Dim), int'(MaxK));
-    run(int'(MaxM), int'(MaxN), 2);
+    // 1. Injeção manual determinística (prova acumulação de K=3 produtos parciais)
+    run_case(int'(Dim), int'(Dim), 3, 1'b1);
 
-    if (errors == 0) $display("PASS: %0d checks", checks);
-    else             $display("FAIL: %0d of %0d checks", errors, checks);
+    // 2. Testes aleatórios de regressão (tiling e back-pressure no DMA)
+    run_case(int'(Dim), int'(Dim), 1, 1'b0);
+    run_case(int'(Dim), int'(Dim), int'(MaxK), 1'b0);
+    run_case(2 * int'(Dim), int'(Dim), 3, 1'b0);
+    run_case(int'(Dim), 2 * int'(Dim), 5, 1'b0);
+    run_case(2 * int'(Dim), 2 * int'(Dim), int'(MaxK), 1'b0);
+    run_case(int'(MaxM), int'(MaxN), 2, 1'b0);
+  endtask
+
+endmodule
+
+
+// Top-Level do Testbench Unitário (Executa 2x2 e 4x4)
+module tb_accelerator_top;
+  int err_2x2, chk_2x2;
+  int err_4x4, chk_4x4;
+
+  tb_coproc_unit #(.Dim(2)) u_tb_2x2 (
+    .total_errors(err_2x2),
+    .total_checks(chk_2x2)
+  );
+
+  tb_coproc_unit #(.Dim(4)) u_tb_4x4 (
+    .total_errors(err_4x4),
+    .total_checks(chk_4x4)
+  );
+
+  initial begin
+    $dumpfile("tb_accelerator_unit.vcd");
+    $dumpvars(0, tb_accelerator_top);
+    $display(" TESTBENCH UNITARIO DO ACELERADOR (coproc_core: 2x2 e 4x4)");
+
+    u_tb_2x2.run_suite();
+    u_tb_4x4.run_suite();
+
+    $display(" RESUMO FINAL:");
+    $display("  Array 2x2 -> Checks: %0d | Erros: %0d", chk_2x2, err_2x2);
+    $display("  Array 4x4 -> Checks: %0d | Erros: %0d", chk_4x4, err_4x4);
+    if ((err_2x2 + err_4x4) == 0)
+      $display(" STATUS: PASS (%0d checks totais sem erros)", chk_2x2 + chk_4x4);
+    else
+      $display(" STATUS: FAIL (%0d erros encontrados)", err_2x2 + err_4x4);
     $finish;
   end
-
 endmodule
