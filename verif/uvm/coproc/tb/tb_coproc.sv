@@ -33,11 +33,17 @@ module tb_coproc;
 
   assign c_if.tdata = AXIS_MAX_DW'(c_tdata);
 
-  coproc_top #(
+  // At gate level (make gls defines GLS) the netlist has no parameters: it was synthesized with
+  // the defaults, which are these values.
+  coproc_top
+`ifndef GLS
+  #(
     .Dim         (Dim  ),
     .CDataWidth  (CW   ),
     .RegAddrWidth(RegAw)
-  ) dut (
+  )
+`endif
+  dut (
     .clk_i           (tb_if.clk_sys        ),
     .rst_ni          (tb_if.rst_n          ),
     .clk_acc_i       (tb_if.clk_acc        ),
