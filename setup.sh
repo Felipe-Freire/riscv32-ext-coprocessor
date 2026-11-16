@@ -19,7 +19,7 @@ JOBS="$(nproc 2>/dev/null || echo 4)"
 SKIP_DEPS=0
 CLEAN=0
 
-APT_PACKAGES=(build-essential device-tree-compiler libboost-regex-dev libboost-system-dev)
+APT_PACKAGES=(build-essential device-tree-compiler libboost-regex-dev libboost-system-dev gcc-riscv64-unknown-elf picolibc-riscv64-unknown-elf)
 
 die()  { echo "setup.sh: $*" >&2; exit 1; }
 info() { echo "==> $*"; }
@@ -48,8 +48,15 @@ else
 fi
 
 # --- 1. Submodules -----------------------------------------------------------
+# Only what this project builds against. riscv-gnu-toolchain is deliberately NOT recursed
+# into: its nested submodules are GCC's test harness (dejagnu, from savannah.gnu.org, which
+# is unreliable and regularly returns HTTP 500) and are needed only to build GCC from source.
+# The toolchain comes from apt instead, see APT_PACKAGES above.
 info "Fetching submodules"
-git -C "${PROJ_ROOT}" submodule update --init --recursive
+git -C "${PROJ_ROOT}" submodule update --init \
+  vendor/axi vendor/common_cells vendor/riscv-arch-test
+# Spike needs its own berkeley-softfloat-3, so this one is recursive.
+git -C "${PROJ_ROOT}" submodule update --init --recursive vendor/riscv-isa-sim
 
 [[ -f "${SPIKE_SRC}/configure" ]] || die "${SPIKE_SRC}/configure missing: submodule checkout failed"
 

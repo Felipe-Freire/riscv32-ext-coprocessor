@@ -9,7 +9,8 @@ Tool wrappers and helper utilities. Day-to-day use goes through the top-level
 |---|---|
 | [`setup.sh`](setup.sh) | Environment setup: `source scripts/setup.sh` exports `PROJ_ROOT` |
 | [`sim/`](sim/) | Simulator flows, one subdirectory per tool (`xrun/`, `vsim/`, `vcs/`, `xsim/`, `verilator/`) |
-| [`utils/`](utils/) | Helpers: ELF→hex conversion, generators, log and coverage report parsers |
+| [`sim/verilator/`](sim/verilator/) | `verilator.mk` (the `cosim` flow), `run_cosim.py` (runs the whole software suite against Spike) and `run_act_elf.sh` (one ELF on the core, for the architectural tests) |
+| [`utils/`](utils/) | Helpers: `elf2hex.py` (ELF → `$readmemh` image), `cmp_trace.py` (core trace vs. Spike commit log), `gen_random_test.py` (random RV32I programs) |
 
 Synthesis flow scripts live with their constraints in [`syn/`](../syn/README.md).
 
