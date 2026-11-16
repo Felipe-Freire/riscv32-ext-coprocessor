@@ -1,0 +1,17 @@
+# riscv-arch-test (ACT4) target configuration for rv32_core.
+#
+# Build and run with the framework, from the submodule:
+#   CONFIG_FILES=$PROJ_ROOT/verif/arch-test/test_config.yaml make -C vendor/riscv-arch-test EXTENSIONS=I
+#
+# See README.md in this directory for the prerequisites, which are not installed by setup.sh, and
+# for the parts of the suite this core cannot run.
+name: rv32-coproc
+compiler_exe: riscv64-unknown-elf-gcc
+objdump_exe: riscv64-unknown-elf-objdump
+# Reference model used to produce the expected signatures. Not installed here; the cosim flow uses
+# Spike for a stronger check (every retired instruction), so the signature is a second opinion.
+ref_model_exe: sail_riscv_sim
+# UDB configuration describing the core. Has to be written, see README.md.
+udb_config: rv32-coproc.yaml
+linker_script: link.ld
+dut_include_dir: .

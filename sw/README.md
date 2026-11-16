@@ -27,6 +27,83 @@ never hard-code them. Addresses and register maps: [memory map](../rtl/top/READM
 [DMA](../rtl/dma/README.md#registers), [coprocessor](../rtl/coproc/README.md#registers),
 [timer](../rtl/periph/README.md#timer).
 
+## Building a test
+
+```bash
+make sw TEST=sum             # build/sw/sum.{elf,hex,dis,sym,map}
+make cosim TEST=sum          # run it on Spike and on the RTL core and compare the traces
+make cosim-all               # every test under tests/, as a table (run_cosim.py)
+```
+
+`TEST` is a directory under `tests/`; every `.c` and `.S` in it is linked together with
+`common/crt0.S`, `common/linker.ld` and any shared helper in `common/*.c`. The flow is in
+[`sw.mk`](sw.mk), the comparison against Spike in
+[verif/README.md](../verif/README.md#comparing-the-core-against-spike).
+
+## Tests
+
+Each test includes [`common/check.h`](common/check.h) and returns the number of the first `CHECK`
+that failed, so the exit code says which one broke. Instruction counts are what the core retires.
+
+| Test | What it covers | Instructions |
+|---|---|---|
+| `sum`, `sub` | ADD, ADDI, SUB, immediate range, unsigned wraparound and borrow | ~105 |
+| `mult`, `div` | `__mulsi3`, `__divsi3`, `__modsi3` from libgcc: no M extension | 745, 1191 |
+| `logic` | AND, OR, XOR, SLL, SRL, SRA, shift amount in a register and as an immediate | 141 |
+| `compare` | SLT, SLTU and the immediate forms at the signed/unsigned boundaries | 106 |
+| `branch` | the six conditional branches taken and not taken, loops | 292 |
+| `jump` | JAL, JALR, nested calls, calls through a function pointer | 210 |
+| `loadstore` | LB/LBU/LH/LHU/LW, SB/SH/SW, byte lanes, sign extension, little endian | 206 |
+| `upper` | LUI and AUIPC: 32-bit constants and PC-relative addresses | 115 |
+| `hazard` | assembly: the forwarding paths, the load-use stall, x0 never written | 104 |
+| `memcpy` | byte and word copy loops, memset, overlapping move, zero length | 4.8k |
+| `recursion` | fib, factorial, mutual recursion: stack frames, saved `ra` | 11.6k |
+| `crc32` | CRC-32 bit by bit and through a 256-entry table, both agreeing | 22.8k |
+| `sort` | insertion sort and bubble sort over the same array, 48 elements | 50k |
+| `matmul` | 8x8 integer matrix multiply, the software reference for the coprocessor | 67k |
+| `csr` | assembly: CSRRW/S/C and the immediate forms over every implemented CSR | 157 |
+| `trap` | assembly: all nine exception causes, `mepc`, `mcause`, MRET, `mstatus.MIE`/`MPIE` | 242 |
+| `fence` | FENCE and its operand forms, decoded as a no-op | 109 |
+| `bitops` | popcount, CLZ, CTZ, bit reversal, byte swap, rotation, field insert | 640 |
+| `predictor` | branch patterns built to mispredict: the static prediction and the EX redirect | 14.4k |
+| `fixedpoint` | Q15 multiply-accumulate with rounding and saturation | 6.1k |
+
+Random programs are generated rather than written:
+
+```bash
+scripts/sim/verilator/run_cosim.py --random 20 --random-count 3000
+```
+
+[`gen_random_test.py`](../scripts/utils/gen_random_test.py) emits a straight-line RV32I program
+per seed. It needs no expected answer, because the trace comparison against Spike is the answer;
+it only has to be deterministic and to terminate.
+
+Writing a new one: keep the operands of the operation under test in `volatile` variables, or the
+compiler folds the operation away and the test checks nothing. There is no libc, so an initialized
+local array or struct can fail to link when gcc lowers it to a `memcpy` call; make it `static`, or
+put a helper in `common/`. Keep every access naturally aligned unless the test is about traps,
+since the core and Spike both trap on a misaligned load or store.
+
+A test that needs other build settings puts them in `tests/<test>/test.mk` (`ARCH`, `SPIKE_ISA`,
+`COSIM_TIMEOUT`, ...), which is included before the defaults. `TEST_DIR` builds a test from
+somewhere else entirely, which is how the generated random programs are built out of `build/`.
+
+Two instructions cannot be co-simulated against standalone Spike, both for the same kind of
+reason, and both are left out of the tests on purpose:
+
+| Instruction | Core | Spike |
+|---|---|---|
+| `WFI` | no-op | waits for an interrupt nothing can raise, so the reference never finishes |
+| `FENCE.I` | illegal instruction: no Zifencei ([decoder](../rtl/core/units/rv32_decoder.sv)) | executes it as a no-op whatever `--isa` says |
+
+The DPI co-simulation in [`verif/models/riscv`](../verif/models/riscv/README.md) has a
+`wfi_as_nop` option for the first; the second needs the core to accept `FENCE.I` as a no-op, which
+would be legal for an in-order core with no instruction cache.
+
+`crt0.S` sets the stack, zeroes `.bss`, calls `main` and ends the run by writing
+`(main() << 1) | 1` to the HTIF `tohost` word: Spike exits with that code and the testbench stops
+on the same store, so a program needs no testbench-specific exit path.
+
 ## Boot
 
 The testbench loads the I-TCM, the D-TCM and the L2 before it releases reset. The core starts in
