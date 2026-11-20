@@ -29,6 +29,10 @@ The only clock-domain crossings are inside the coprocessor block.
 Any other address returns an access fault. The core cannot load data from the Boot ROM or the
 I-TCM, so read-only data is linked into the D-TCM.
 
+In the RTL the map, the address rules of the crossbars and the bus types are in
+[`soc_pkg`](../common/soc_pkg.sv); `tb_soc_pkg` checks them against this table. Change both
+together.
+
 ### Matrix buffers in L2
 
 The L2 has two 32 KiB banks selected by address bit 15, so the DMA can read A and B while it

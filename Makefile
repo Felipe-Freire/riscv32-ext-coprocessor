@@ -17,6 +17,11 @@ RTL_FLIST_dma    := $(PROJ_ROOT)/rtl/dma/dma.f
 RTL_TOP_dma      := dma_top
 # tb_dma_coproc runs the DMA against coproc_top.
 SIM_FLIST_dma    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/rtl/coproc/coproc.f
+# bus joins BLOCKS when its top, bus_top, exists; until then TOP= picks a module.
+RTL_FLIST_bus    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/vendor/axi.f \
+                    $(PROJ_ROOT)/rtl/common/common.f $(PROJ_ROOT)/rtl/bus/bus.f
+RTL_TOP_bus      := bus_top
+SIM_FLIST_bus    := $(PROJ_ROOT)/vendor/common_verification.f $(PROJ_ROOT)/vendor/axi_sim.f
 
 .DEFAULT_GOAL := help
 .PHONY: help clean

@@ -88,8 +88,10 @@ if {$clock_gating} {
 
 # ---- RTL and constraints ----------------------------------------------------------------------
 
+# The defines Bender passes to a Genus synthesis: the vendor IP keys its simulation-only code
+# (assertions, interface wrappers Genus cannot parse) on them.
 foreach flist $flists {
-  read_hdl -language sv -f $flist
+  read_hdl -language sv -define {SYNTHESIS TARGET_SYNTHESIS TARGET_GENUS} -f $flist
 }
 elaborate $top
 

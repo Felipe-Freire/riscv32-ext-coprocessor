@@ -22,6 +22,9 @@ TB=tb_dma_addr_gen
 TB=tb_dma_top
 TB=tb_dma_coproc
 
+# Directed testbenches: interconnect
+TB=tb_soc_pkg
+
 # UVM: rv32_pc
 UVM=core_pc TEST=core_pc_smoke_test
 UVM=core_pc TEST=core_pc_stress_test

@@ -53,6 +53,11 @@ rules only; hold waits for Tempus.
   IP first) and default top. To add one, add it to `BLOCKS` with its `RTL_FLIST_<block>` and
   `RTL_TOP_<block>`. The SoC top will read [`rtl/rtl.f`](../rtl/rtl.f), with the technology
   primitive list in place of `rtl/prim/prim.f`.
+- Genus reads the file lists with the defines Bender passes to a Genus synthesis (`SYNTHESIS`,
+  `TARGET_SYNTHESIS`, `TARGET_GENUS`): the vendor IP leaves out its assertions and the interface
+  wrappers Genus cannot parse under them, and RTL puts simulation-only code in `` `ifndef SYNTHESIS``.
+  Genus keeps the include directories of a file list to that list, so a list repeats the
+  `+incdir+` of every header its files include (`vendor/axi.f` repeats the `common_cells` one).
 - PDK files and macro views are never committed: a local copy goes in `lib/`, which git ignores.
 - `make syn` writes the cell set of the netlist to `outputs/cells`; `sta` and `gls` stop when the
   technology in use has other cells, so run `make syn` again after changing `VT` or `LIBS`.
