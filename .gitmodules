@@ -4,3 +4,12 @@
 [submodule "vendor/common_cells"]
 	path = vendor/common_cells
 	url = https://github.com/pulp-platform/common_cells.git
+[submodule "vendor/riscv-isa-sim"]
+	path = vendor/riscv-isa-sim
+	url = git@github.com:Felipe-Freire/riscv-isa-sim.git
+[submodule "vendor/riscv-arch-test"]
+	path = vendor/riscv-arch-test
+	url = git@github.com:riscv/riscv-arch-test.git
+[submodule "vendor/riscv-dv"]
+	path = vendor/riscv-dv
+	url = https://github.com/chipsalliance/riscv-dv.git
