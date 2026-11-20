@@ -58,6 +58,9 @@ rules only; hold waits for Tempus.
   wrappers Genus cannot parse under them, and RTL puts simulation-only code in `` `ifndef SYNTHESIS``.
   Genus keeps the include directories of a file list to that list, so a list repeats the
   `+incdir+` of every header its files include (`vendor/axi.f` repeats the `common_cells` one).
+- A packed struct port (the bus types of `soc_pkg`) is one vector port in the netlist
+  (`hdl_flatten_complex_port`), not one port per field, so `make gls` plugs the netlist into the
+  testbench of the RTL: `make gls TB=tb_bus_axi_xbar TOP=bus_axi_xbar`.
 - PDK files and macro views are never committed: a local copy goes in `lib/`, which git ignores.
 - `make syn` writes the cell set of the netlist to `outputs/cells`; `sta` and `gls` stop when the
   technology in use has other cells, so run `make syn` again after changing `VT` or `LIBS`.

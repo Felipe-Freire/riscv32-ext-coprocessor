@@ -5,7 +5,8 @@
 # UVM test (UVM= TEST=): verif/uvm/<env>/<env>.f with the top tb_<env>; the block is the first word
 # of the environment name (core_pc -> core).
 # Gate level (GLS=1): the RTL is replaced by the netlist `make syn` wrote for TOP (default: the
-# block's top), the packages of the block and the cell models; SDF=1 adds the delays of SDF_FILE.
+# block's top), the packages and interfaces of the block and the cell models; SDF=1 adds the delays
+# of SDF_FILE.
 # Testbench-only file lists (SIM_FLIST_<block> in the top-level Makefile: verification IP, or the RTL
 # of another block a testbench runs against) are compiled after the design and before the testbench,
 # at RTL and at gate level. Synthesis never reads them.
@@ -54,8 +55,8 @@ SIM_RUN_DIR = $(BUILD_DIR)/sim/$(SIM_NAME)$(if $(filter 1,$(GLS)),_gls$(if $(fil
 # ---- xrun command line --------------------------------------------------------------------------
 
 ifeq ($(GLS),1)
-# Packages and include directories of the block (the testbenches import them), the netlist, and
-# the cell models as a library: zero delay, or the SDF delays with timing checks.
+# Packages, interfaces and include directories of the block (the testbenches use them), the
+# netlist, and the cell models as a library: zero delay, or the SDF delays with timing checks.
 SIM_DESIGN = -f gls_pkgs.f $(GLS_NETLIST) -v $(abspath $(TECH_MODELS)) -define GLS \
              $(if $(filter 1,$(SDF)),-sdf_cmd_file sdf.cmd -neg_tchk,-nospecify -notimingchecks)
 else
@@ -96,7 +97,7 @@ ifeq ($(GLS),1)
 endif
 	@mkdir -p $(SIM_RUN_DIR)
 ifeq ($(GLS),1)
-	@sed -n -e '/^\s*+incdir+/p' -e '/_pkg\.sv\s*$$/p' $(RTL_FLIST_$(SIM_BLOCK)) > $(SIM_RUN_DIR)/gls_pkgs.f
+	@sed -n -e '/^\s*+incdir+/p' -e '/_\(pkg\|intf\)\.sv\s*$$/p' $(RTL_FLIST_$(SIM_BLOCK)) > $(SIM_RUN_DIR)/gls_pkgs.f
 ifeq ($(SDF),1)
 	@test -r "$(SDF_FILE)" || { echo "[sim] No SDF $(SDF_FILE)" >&2; exit 1; }
 	cd $(SIM_RUN_DIR) && xmsdfc -output $(GLS_TOP).sdf.X $(abspath $(SDF_FILE)) > xmsdfc.log

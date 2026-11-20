@@ -259,8 +259,16 @@ module tb_bus_dma_coproc;
 
   typedef logic [31:0] word_t;
 
+  // Clock edges since reset, and the cycles from the request to the response of the last access.
+  int unsigned cycle = 0;
+  int unsigned latency;
+
+  always @(posedge clk) cycle++;
+
   task automatic obi_access(input bit we, input axi_addr_t addr, input word_t wdata,
                             output word_t rdata, output bit err);
+    int unsigned start;
+    start    = cycle;
     core_req = '{req: 1'b1, addr: addr, we: we, be: 4'hF, wdata: wdata};
     #(TestTime - ApplTime);
     while (!core_rsp.gnt) begin
@@ -275,8 +283,9 @@ module tb_bus_dma_coproc;
       @(posedge clk);
       #(TestTime);
     end
-    rdata = core_rsp.rdata;
-    err   = core_rsp.err;
+    rdata   = core_rsp.rdata;
+    err     = core_rsp.err;
+    latency = cycle - start;
     @(posedge clk);
     #(ApplTime);
   endtask
@@ -474,6 +483,38 @@ module tb_bus_dma_coproc;
   endtask
 
   // ================================================================================================
+  // Latency of the core's accesses, on an idle interconnect
+  // ================================================================================================
+
+  // Cycles from the request to the response: 1 when the access is granted at once and answered in
+  // the next cycle. Printed for rtl/bus/README.md; the DONE wait of the DMA and the coprocessor
+  // depends on the bus only through these.
+  task automatic test_latency();
+    typedef struct {
+      string     name;
+      bit        we;
+      axi_addr_t addr;
+      bit        err;
+    } probe_t;
+    probe_t probes [7] = '{
+      '{"L2 load",                  1'b0, C_BASE,                    1'b0},
+      '{"L2 store",                 1'b1, C_BASE,                    1'b0},
+      '{"DMA register load",        1'b0, dma_reg(0, dma_pkg::REG_ADDR), 1'b0},
+      '{"DMA register store",       1'b1, dma_reg(0, dma_pkg::REG_ADDR), 1'b0},
+      '{"coprocessor register load", 1'b0, COP_DIM_M,               1'b0},
+      '{"control window, DECERR",   1'b0, COPROC_BASE + PERIPH_SIZE, 1'b1},
+      '{"unmapped, err from demux", 1'b0, 32'h3000_0000,             1'b1}
+    };
+    word_t rdata;
+    bit    err;
+    foreach (probes[i]) begin
+      obi_access(probes[i].we, probes[i].addr, '0, rdata, err);
+      check(err == probes[i].err, $sformatf("latency, %s: err %b", probes[i].name, err));
+      $display("latency: %-26s %0d cycles", probes[i].name, latency);
+    end
+  endtask
+
+  // ================================================================================================
   // Main
   // ================================================================================================
 
@@ -486,6 +527,7 @@ module tb_bus_dma_coproc;
     repeat (2) @(posedge clk);
     #(ApplTime);
 
+    test_latency();
     matmul(8, 8, 8);         // one tile
     matmul(16, 24, 16);      // 2 x 3 tiles, A panels sent three times
     dma_error();

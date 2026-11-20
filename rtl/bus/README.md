@@ -83,13 +83,13 @@ depending on a peripheral.
   boundary is 4 KiB aligned, so a burst stays in one bank.
 - AR and AW are routed independently, so a read of one bank and a write of the other move a beat
   each on the same cycle: the DMA reads A and B from bank 0 while it writes C to bank 1. In
-  `tb_bus_axi_xbar` a 16-beat read and a 16-beat write take 20 cycles together and 39 in turn.
+  `tb_bus_axi_xbar` a 16-beat read and a 16-beat write take 19 cycles together and 37 in turn.
 - Towards a bank the crossbar prepends the master index to the ID (2 → 3 bits) and strips it from
   the B and R beats it returns. Two masters on the same bank are served round robin, per channel.
 - An address outside the L2 gets `DECERR` from the crossbar, without reaching a bank. Only the DMA
   can issue one, and its channel stops with `ERR` ([DMA](../dma/README.md#registers)).
-- Spill registers on AW and AR on both sides of the crossbar (`DATA_XBAR_LATENCY`). No atomic
-  operations.
+- Spill registers on AW and AR at the masters' side of the crossbar (`DATA_XBAR_LATENCY` =
+  `CUT_SLV_AX`, chosen in [Timing](#timing)). No atomic operations.
 
 ## Core bridge
 
@@ -114,6 +114,71 @@ lane, `addr[3:2]`, and back:
   cycle. The lane of each access waits in a FIFO that moves with the response FIFO of
   `axi_from_mem`.
 
+## Timing
+
+`make syn BLOCK=bus`: GPDK045 `slow_vdd1v0`, [`default.sdc`](../../syn/constraints/default.sdc)
+(inputs arrive and outputs are due at 30% of the period). Genus sizes the logic until the
+constraint is met, so the slack ends near zero at both periods; 5 ns costs 4% more area.
+
+| Clock | Slack | Area | Flip-flops | Worst path |
+|---|---|---|---|---|
+| 10 ns | +0.025 ns | 17 135 | 900 | `core_req_i.addr` → `core_rsp_o.gnt`: the address decode of the demux, then the grant of the core bridge |
+| 5 ns | 0.000 ns | 17 892 | 900 | `l2_rsp_i.r.id` → `dma_rsp_o.r`: an R beat of a bank, routed to its master by the ID prefix, through the crossbar |
+
+`make sta BLOCK=bus` gives the same slack. Area at 10 ns: data crossbar 10 535, control crossbar
+3 606, core bridge 605, demux 395, OBI → AXI4-Lite bridge 167. No latches.
+
+### Latency mode of the data crossbar
+
+`DATA_XBAR_LATENCY` comes from synthesizing `bus_top` with each `LatencyMode` of `axi_xbar` and
+running the bus testbenches on each one (core L2 latency from `tb_bus_dma_coproc`, cycles from the
+request to the response; the multiplication is 64×128×128, from the DMA start to its end):
+
+| `LatencyMode` | Area at 10 ns | Flip-flops | 5 ns | Core L2 load / store | Multiplication |
+|---|---|---|---|---|---|
+| `NO_LATENCY` | 14 713 | 558 | −0.58 ns | 1 / 2 | 24 551 |
+| **`CUT_SLV_AX`** | **17 123** | **900** | **met** | **2 / 3** | **24 927** |
+| `CUT_MST_AX` | 19 748 | 1 110 | −0.60 ns | 2 / 3 | 24 927 |
+| `CUT_ALL_AX` | 22 200 | 1 452 | met | 3 / 4 | 25 375 |
+| `CUT_SLV_PORTS` | 25 663 | 1 840 | met | 3 / 4 | 25 375 |
+| `CUT_MST_PORTS` | 30 268 | 2 270 | −0.53 ns | 3 / 4 | 25 375 |
+| `CUT_ALL_PORTS` | 41 164 | 3 552 | met | 5 / 6 | 26 051 |
+
+- Every mode closes 10 ns. At 5 ns the ones without spill registers at the masters' side fail: the
+  AW and AR of a master reach the arbitration combinationally, so the grant to the core depends on
+  what the DMA sends in the same cycle (the worst path of `NO_LATENCY` runs from the DMA's AW
+  address to the core's `gnt`).
+- `CUT_SLV_AX` is the smallest mode that closes 5 ns. The registers at the banks' side
+  (`CUT_ALL_AX`, the vendor's general recommendation) add 30% of area and a cycle to every core
+  access and move no limit; registering W, B and R as well (`*_PORTS`) adds more of both.
+- Throughput does not depend on the mode: a spill register moves one beat per cycle, and the
+  multiplication is bound by the array (the slowest mode takes 6% longer). Each register stage
+  costs the core a cycle per L2 access.
+- If the L2 banks of `soc_top` need their inputs registered, `CUT_ALL_AX` adds those registers by
+  changing that parameter alone.
+
+### Core access latency
+
+Measured by `tb_bus_dma_coproc` on an idle interconnect, in cycles from the request to the response
+(1: granted at once and answered in the next cycle). The D-TCM answers in the cycles of the D-TCM
+itself: the demux adds none.
+
+| Access | Cycles |
+|---|---|
+| L2 load | 2 |
+| L2 store | 3 |
+| Register load | 3 |
+| Register store | 4 |
+| Control window outside the peripherals (`DECERR`) | 4 |
+| Outside every window (err from the demux) | 1 |
+
+### In `soc_top`
+
+The path from the core's address to `gnt` is combinational through the demux decode and the grant
+of the bridge. In the SoC it starts at the EX adder of the core (`data_addr_o`) and ends in its
+stall logic (`data_gnt_i`, which holds the pipeline), so it is the path to watch in the timing of
+the top.
+
 ## Verification
 
 | Testbench | Checks |
@@ -125,7 +190,8 @@ lane, `addr[3:2]`, and back:
 | `tb_bus_obi2axi` | `bus_obi2axi` against `axi_sim_mem`, with every AXI channel stalled 0 to 15 cycles (vendor `axi_delayer`). Each AW, W and AR is checked against its OBI request and each response against a byte model of the memory. Directed: stores and loads of every size at every position of a beat, `SLVERR` and `DECERR`, two accesses outstanding. Then random accesses |
 
 `SEED=random` with `PLUSARGS=+TXNS=<n>` (`tb_bus_axi_xbar`) or `PLUSARGS=+OPS=<n>`
-(`tb_bus_obi2axi`, `tb_bus_top`) runs more random traffic.
+(`tb_bus_obi2axi`, `tb_bus_top`) runs more random traffic. `make syn BLOCK=bus TOP=bus_axi_xbar`
+then `make gls TB=tb_bus_axi_xbar TOP=bus_axi_xbar` runs the crossbar test on the netlist.
 
 ---
 [← Back to RTL](../README.md)

@@ -139,8 +139,12 @@ package soc_pkg;
 
   // ---- Crossbar configurations (vendor/axi/doc/axi_xbar.md) ----------------------------------------
 
-  // Spill registers on AW and AR on both sides of the data crossbar. To be revisited with synthesis.
-  parameter axi_pkg::xbar_latency_e DATA_XBAR_LATENCY = axi_pkg::CUT_ALL_AX;
+  // Spill registers on AW and AR at the masters' side of the data crossbar (its slave ports), so the
+  // grant the core bridge and the DMA wait for comes from a register, never from the arbitration.
+  // Chosen with the synthesis of bus_top (rtl/bus/README.md#timing): it closes 5 ns like
+  // CUT_ALL_AX with 23% less area and one cycle less per core access; NO_LATENCY and CUT_MST_AX
+  // do not close 5 ns.
+  parameter axi_pkg::xbar_latency_e DATA_XBAR_LATENCY = axi_pkg::CUT_SLV_AX;
 
   // Spill registers on every channel at the core side of the control crossbar, so the grant the core
   // waits for never depends combinationally on a peripheral. A register access is not latency
