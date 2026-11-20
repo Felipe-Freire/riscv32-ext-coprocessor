@@ -11,6 +11,7 @@ The specification lives in the READMEs next to the RTL, so it changes together w
 | Memory map, matrix buffers, interrupts, clocks, interfaces between blocks | [`rtl/top/`](../rtl/top/README.md) |
 | Core: instructions, CSRs, traps, ports | [`rtl/core/`](../rtl/core/README.md) |
 | DMA: channels, registers, ports | [`rtl/dma/`](../rtl/dma/README.md) |
+| Interconnect: buses, address decode, error responses, latency, timing | [`rtl/bus/`](../rtl/bus/README.md) |
 | Coprocessor: operation, matrix layout, registers, ports | [`rtl/coproc/`](../rtl/coproc/README.md) |
 | Timer registers | [`rtl/periph/`](../rtl/periph/README.md) |
 | Boot and matrix multiplication sequence from the core | [`sw/`](../sw/README.md) |

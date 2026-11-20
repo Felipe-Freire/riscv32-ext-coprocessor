@@ -21,13 +21,22 @@ The only clock-domain crossings are inside the coprocessor block.
 | `0x0000_0000` | 4 KiB | Boot ROM (reset vector) | Core instruction fetch |
 | `0x1000_0000` | 32 KiB | I-TCM | Core instruction fetch |
 | `0x1001_0000` | 32 KiB | D-TCM | Core loads and stores |
-| `0x2000_0000` | 64 KiB | L2 SRAM | Core (AXI4), DMA |
+| `0x2000_0000` | 64 KiB | L2 SRAM, two banks of 32 KiB | Core (AXI4), DMA |
 | `0x4000_0000` | 4 KiB | [Timer registers](../periph/README.md#timer) | Core (AXI4-Lite) |
 | `0x4000_1000` | 4 KiB | [DMA registers](../dma/README.md#registers) | Core (AXI4-Lite) |
 | `0x4000_2000` | 4 KiB | [Coprocessor registers](../coproc/README.md#registers) | Core (AXI4-Lite) |
 
-Any other address returns an access fault. The core cannot load data from the Boot ROM or the
-I-TCM, so read-only data is linked into the D-TCM.
+A fetch outside the Boot ROM and the I-TCM, or a load or store anywhere outside the D-TCM, the L2
+and the registers, ends in an access fault. The core cannot load data from the Boot ROM or the
+I-TCM, so read-only data is linked into the D-TCM. The interconnect answers the bad data accesses
+([`bus_top`](../bus/README.md#core-data-port)):
+
+| Access | Error from | Then |
+|---|---|---|
+| Core, outside the D-TCM, the L2 and the control window `0x4000_0000`–`0x4FFF_FFFF` | The demux of the core data port | Access fault |
+| Core, in the control window outside the three peripherals | The control crossbar (`DECERR`) | Access fault |
+| Core, a register the peripheral rejects | The peripheral (`SLVERR`) | Access fault |
+| DMA, outside the L2 | The data crossbar (`DECERR`) | The channel stops with `ERR` |
 
 In the RTL the map, the address rules of the crossbars and the bus types are in
 [`soc_pkg`](../common/soc_pkg.sv); `tb_soc_pkg` checks them against this table. Change both
@@ -59,15 +68,19 @@ There is no interrupt controller: each source drives one core input.
 | Interface | From → to | Protocol | Data bits |
 |---|---|---|---|
 | Instruction fetch | Core → Boot ROM, I-TCM | OBI subset: always granted, data one cycle later, held while the request is low | 32 |
-| Data | Core → D-TCM, bus bridges | OBI | 32 |
-| Data bus | Core (OBI → AXI4 bridge), DMA → L2 | AXI4 | 128 |
-| Control bus | Core (OBI → AXI4-Lite bridge) → timer, DMA, coprocessor registers | AXI4-Lite | 32 |
+| Data | Core → D-TCM, data bus, control bus (demux by address) | OBI | 32 |
+| Data bus | Core (OBI → AXI4 bridge), DMA → L2 bank 0, L2 bank 1 | AXI4, 2×2 crossbar; IDs of 2 bits at the masters, 3 at the banks | 128 |
+| Control bus | Core (OBI → AXI4-Lite bridge) → timer, DMA, coprocessor registers | AXI4-Lite, 1×3 crossbar | 32 |
 | A and B streams | DMA → coprocessor | AXI4-Stream (`TVALID`, `TREADY`, `TDATA`) | 64 |
 | C stream | Coprocessor → DMA | AXI4-Stream (`TVALID`, `TREADY`, `TDATA`) | 128 |
 | Interrupts | Timer, DMA → core | Level, active-high | 1 each |
 
 Port lists: [core](../core/README.md#ports), [DMA](../dma/README.md#ports),
-[coprocessor](../coproc/README.md#ports), [timer](../periph/README.md#timer).
+[coprocessor](../coproc/README.md#ports), [timer](../periph/README.md#timer),
+[interconnect](../bus/README.md#ports-of-bus_top). The demux, the bridges and both crossbars are
+`bus_top`, with its latency and timing in [`rtl/bus`](../bus/README.md#timing). The data bus has a
+port per L2 bank because the bank boundary (address bit 15) is a crossbar rule: the DMA reads A and
+B from bank 0 while it writes C to bank 1.
 
 ## Verification
 

@@ -29,6 +29,12 @@ required: it proves that the testbench reached its end.
 Run one with `make sim TB=tb_rv32_id_stage`; the options and the gate-level run are in
 [`scripts/`](../scripts/README.md#simulation).
 
+The testbenches of the interconnect, `unit/bus/`, drive and check it with the verification IP of
+`vendor/axi` (random masters and slaves, the crossbar monitor, `axi_sim_mem`), which they get
+through `SIM_FLIST_bus`; their list is in [`rtl/bus`](../rtl/bus/README.md#verification).
+`unit/top/` holds the integration testbenches: until `soc_top` exists they compile the whole RTL and
+build the part of the SoC they test ([`rtl/top`](../rtl/top/README.md#verification)).
+
 ## UVM environments
 
 Each `uvm/<block>/` has `tb/`, `env/`, `seq/` and `tests/`. Classes go one per file (`.svh`),

@@ -6,8 +6,8 @@ updated by moving the submodule.
 
 | Directory | Source | Version | License | File list | Used for |
 |---|---|---|---|---|---|
-| `axi/` | [pulp-platform/axi](https://github.com/pulp-platform/axi) | `v0.39.11` | Solderpad 0.51 | [`axi.f`](axi.f), [`axi_sim.f`](axi_sim.f) | AXI4 and AXI4-Lite crossbars, bridges, `axi_to_mem`, request/response struct macros (`axi/typedef.svh`); in simulation, random masters and slaves, memory model and crossbar monitor |
-| `common_cells/` | [pulp-platform/common_cells](https://github.com/pulp-platform/common_cells) | `v1.39.0` | Solderpad 0.51 | [`common_cells.f`](common_cells.f) | Dependency of `axi/`; `cdc_fifo_gray` and `cdc_2phase` in `coproc_top` |
+| `axi/` | [pulp-platform/axi](https://github.com/pulp-platform/axi) | `v0.39.11` | Solderpad 0.51 | [`axi.f`](axi.f), [`axi_sim.f`](axi_sim.f) | In [`rtl/bus`](../rtl/bus/README.md): `axi_xbar`, `axi_lite_xbar`, `axi_from_mem`, `axi_lite_from_mem`; request/response struct macros (`axi/typedef.svh`) in `soc_pkg`; `axi_to_mem` for the L2 banks. In simulation: random masters and slaves, memory model and crossbar monitor, and `axi_delayer` and `axi_lite_regs` as testbench models |
+| `common_cells/` | [pulp-platform/common_cells](https://github.com/pulp-platform/common_cells) | `v1.39.0` | Solderpad 0.51 | [`common_cells.f`](common_cells.f) | Dependency of `axi/`; `cdc_fifo_gray` and `cdc_2phase` in `coproc_top`; `addr_decode` and `fifo_v3` in `rtl/bus` |
 | `common_verification/` | [pulp-platform/common_verification](https://github.com/pulp-platform/common_verification) | `v0.2.5` | Solderpad 0.51 | [`common_verification.f`](common_verification.f) | Simulation only: `rand_id_queue_pkg` and clock/reset generators, needed by `axi_sim.f` |
 
 The file lists sit next to the submodules, because the submodules stay unmodified. They follow the
