@@ -69,5 +69,16 @@ There is no interrupt controller: each source drives one core input.
 Port lists: [core](../core/README.md#ports), [DMA](../dma/README.md#ports),
 [coprocessor](../coproc/README.md#ports), [timer](../periph/README.md#timer).
 
+## Verification
+
+Until `soc_top` exists, the testbenches in `verif/unit/top/` compile the whole RTL (`rtl/rtl.f`)
+and build the part of the SoC they test.
+
+| Testbench | Checks |
+|---|---|
+| `tb_bus_dma_coproc` | [`bus_top`](../bus/README.md), `dma_top` and `coproc_top` connected as in the SoC, without the core and the memories. An OBI driver on the core data port runs the [matrix multiplication sequence](../../sw/README.md#matrix-multiplication) over the control bus and loads C back over the data bus; the L2 banks are `axi_sim_mem` and `clk_acc_i` is asynchronous. Sizes from one tile to full buffers (8×8×2048, 64×128×128) and random ones, each C checked in the bank and as the core loads it; DMA reads outside the L2 (`ERR`, `irq_o`); at elaboration, the widths of `dma_pkg` and `coproc_pkg` against the buses of `soc_pkg` |
+
+`make sim TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=<n>` adds `n` random sizes (2 by default).
+
 ---
 [← Back to RTL](../README.md)

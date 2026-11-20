@@ -30,3 +30,8 @@ TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
 TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000
 TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000
 TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000
+
+# SoC integration: random matrix sizes through bus_top, the DMA and the coprocessor
+TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=8
+TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=8
+TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=8

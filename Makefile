@@ -22,6 +22,9 @@ RTL_FLIST_bus    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/vendor/axi.f
 RTL_TOP_bus      := bus_top
 SIM_FLIST_bus    := $(PROJ_ROOT)/vendor/common_verification.f $(PROJ_ROOT)/vendor/axi_sim.f \
                     $(PROJ_ROOT)/verif/assertions/bus.f
+# top joins BLOCKS when its top, soc_top, exists; until then its testbenches compile the whole RTL.
+RTL_FLIST_top    := $(PROJ_ROOT)/rtl/rtl.f
+SIM_FLIST_top    := $(SIM_FLIST_bus)
 
 .DEFAULT_GOAL := help
 .PHONY: help clean
