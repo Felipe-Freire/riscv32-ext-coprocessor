@@ -9,8 +9,63 @@ map, interfaces between blocks) is in [`top/`](../top/README.md).
 
 | Module | Function | Vendor IP |
 |---|---|---|
+| `bus_top` | The interconnect: the modules below, the OBI → AXI4-Lite bridge and the control crossbar | `axi_lite_from_mem`, `axi_lite_xbar` |
+| `bus_obi_demux` | Core data port: each access to its target by address, the response back, err for unmapped addresses | `addr_decode` (common_cells) |
 | `bus_axi_xbar` | Data bus: AXI4 128-bit crossbar from the masters (core bridge, DMA) to the L2 banks | `axi_xbar` |
 | `bus_obi2axi` | Core bridge: one access of the core data port (OBI) becomes one AXI4 single-beat transaction on the data bus | `axi_from_mem` |
+
+## Ports of `bus_top`
+
+```
+ core data port (OBI) -> bus_obi_demux -+-> D-TCM (OBI)
+                                        +-> bus_obi2axi -------> bus_axi_xbar -> L2 banks (AXI4)
+                                        |   DMA (AXI4) ------->  (2 x 2)
+                                        +-> axi_lite_from_mem -> axi_lite_xbar -> peripherals
+                                            (AXI4-Lite)          (1 x 3)          (AXI4-Lite)
+```
+
+| Port | Direction | Type | To or from |
+|---|---|---|---|
+| `core_req_i`, `core_rsp_o` | in, out | `obi_req_t`, `obi_rsp_t` | Core data port |
+| `dtcm_req_o`, `dtcm_rsp_i` | out, in | `obi_req_t`, `obi_rsp_t` | D-TCM |
+| `dma_req_i`, `dma_rsp_o` | in, out | `axi_mst_req_t`, `axi_mst_rsp_t` | DMA master port |
+| `l2_req_o`, `l2_rsp_i` | out, in | `axi_slv_req_t`, `axi_slv_rsp_t` × `DATA_NUM_SLV` | L2 banks, indexed by `DATA_SLV_*` |
+| `periph_req_o`, `periph_rsp_i` | out, in | `axil_req_t`, `axil_rsp_t` × `CTRL_NUM_SLV` | Peripheral registers, indexed by `CTRL_SLV_*` |
+
+All in `clk_i`, reset by `rst_ni`. The types and indices come from `soc_pkg`.
+
+## Core data port
+
+`bus_obi_demux` decodes each address with `CORE_ADDR_MAP`:
+
+| Window | Target | Index |
+|---|---|---|
+| `0x1001_0000`–`0x1001_7FFF` | D-TCM | `CORE_TGT_DTCM` |
+| `0x2000_0000`–`0x2000_FFFF` | L2, through `bus_obi2axi` and the data crossbar | `CORE_TGT_DATA` |
+| `0x4000_0000`–`0x4FFF_FFFF` | Peripheral registers, through the control bus | `CORE_TGT_CTRL` |
+
+- An address in no window, the Boot ROM and the I-TCM included, reaches no target: the demux grants
+  it at once and answers with `err` in the next cycle.
+- One access is outstanding at a time. The demux accepts the next one in the cycle the previous one
+  answers, which is when the core sends it, so back-to-back accesses lose no cycle. The responses
+  come in order, each from the target its access went to.
+- `err` reaches the core with the response and becomes an access fault:
+
+| Access | Answered by |
+|---|---|
+| Outside every window | The demux |
+| Control window, no peripheral there | `DECERR` from the control crossbar |
+| Register the peripheral rejects | `SLVERR` from the peripheral |
+| L2 | Never an error: the core sends only L2 addresses to the data bus |
+
+## Control bus
+
+`axi_lite_from_mem` turns the core's access into AXI4-Lite, 32 bits, and `axi_lite_xbar` sends it
+to a peripheral by `CTRL_ADDR_MAP`: 4 KiB of registers each, timer at `0x4000_0000`, DMA at
+`0x4000_1000`, coprocessor at `0x4000_2000`. The address and byte enables go unchanged: the
+peripherals take the register from `addr[11:2]` and the byte enables as strobes. Spill registers on
+every channel at the core side of the crossbar (`CTRL_XBAR_LATENCY`) keep the grant to the core from
+depending on a peripheral.
 
 ## Data bus
 
@@ -65,10 +120,12 @@ lane, `addr[3:2]`, and back:
 |---|---|
 | `tb_soc_pkg` | The address maps and configurations of `soc_pkg` against the memory map |
 | `tb_bus_axi_xbar` | `bus_axi_xbar` under random traffic from both masters (vendor `axi_rand_master`, `axi_rand_slave` and the upstream crossbar monitor), and directed: data across masters and banks, `DECERR`, read and write on the two banks at the same time |
+| `tb_bus_top` | `bus_top` with an OBI driver as the core, a random AXI4 master as the DMA in its own area of both banks, `axi_sim_mem` banks, a D-TCM model and `axi_lite_regs` peripherals with an ID register. Each response against a model of the memories and registers and the error its address must get, and the target each access reaches. Directed: the edges of every window, a different target on every back-to-back access. Then random accesses over every window and unmapped space |
+| `bus_obi_sva` | Bound to `bus_obi_demux` ([`verif/assertions`](../../verif/assertions/bus_obi_sva.sv)): the OBI rules at the core port and the D-TCM port, `req` and payload held until `gnt`, no response without an access, one outstanding |
 | `tb_bus_obi2axi` | `bus_obi2axi` against `axi_sim_mem`, with every AXI channel stalled 0 to 15 cycles (vendor `axi_delayer`). Each AW, W and AR is checked against its OBI request and each response against a byte model of the memory. Directed: stores and loads of every size at every position of a beat, `SLVERR` and `DECERR`, two accesses outstanding. Then random accesses |
 
 `SEED=random` with `PLUSARGS=+TXNS=<n>` (`tb_bus_axi_xbar`) or `PLUSARGS=+OPS=<n>`
-(`tb_bus_obi2axi`) runs more random traffic.
+(`tb_bus_obi2axi`, `tb_bus_top`) runs more random traffic.
 
 ---
 [← Back to RTL](../README.md)

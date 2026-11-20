@@ -418,6 +418,7 @@ module tb_bus_obi2axi;
       end
       if ($urandom_range(0, 3) == 0) begin
         repeat ($urandom_range(1, 3)) @(posedge clk);
+        #(ApplTime);
       end
     end
     wait_responses();

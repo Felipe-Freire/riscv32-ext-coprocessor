@@ -25,3 +25,8 @@ TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
 TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
 TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
 TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
+
+# Interconnect: random core accesses over the whole memory map, beside random DMA bursts
+TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000
+TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000
+TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000

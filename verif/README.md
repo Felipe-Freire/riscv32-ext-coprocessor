@@ -8,7 +8,7 @@ goals are in the [verification plan](../docs/README.md#verification).
 | [`unit/`](unit/) | Directed, self-checking testbenches: `unit/<block>/tb_<module>.sv` |
 | [`uvm/`](uvm/) | UVM agents (`agents/`) and environments (`core/`, `core_pc/` for `rv32_pc`, [`coproc/`](uvm/coproc/README.md), `top/`) |
 | [`models/`](models/) | Reference models: the coprocessor golden model in `models/coproc/` |
-| [`assertions/`](assertions/) | SVA properties, attached to the RTL through `bind` files |
+| [`assertions/`](assertions/) | SVA properties, attached to the RTL through `bind` files; `<block>.f` lists those of a block, compiled through `SIM_FLIST_<block>` |
 | [`regress/`](regress/) | Regression lists |
 
 All outputs (logs, waveforms, coverage) go to `build/`, never into this directory.

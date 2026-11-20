@@ -8,7 +8,7 @@ BUILD_DIR ?= $(PROJ_ROOT)/build
 # gate-level simulation pick one with BLOCK=<name>; simulation finds it from the testbench.
 # SIM_FLIST_<block>: file lists only the testbenches of the block compile, after its RTL (verification
 # IP, or the RTL of another block a testbench runs against). Synthesis never reads them.
-BLOCKS           := core coproc dma
+BLOCKS           := core coproc dma bus
 RTL_FLIST_core   := $(PROJ_ROOT)/rtl/core/core.f
 RTL_TOP_core     := rv32_core
 RTL_FLIST_coproc := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/rtl/coproc/coproc.f
@@ -17,11 +17,11 @@ RTL_FLIST_dma    := $(PROJ_ROOT)/rtl/dma/dma.f
 RTL_TOP_dma      := dma_top
 # tb_dma_coproc runs the DMA against coproc_top.
 SIM_FLIST_dma    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/rtl/coproc/coproc.f
-# bus joins BLOCKS when its top, bus_top, exists; until then TOP= picks a module.
 RTL_FLIST_bus    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/vendor/axi.f \
                     $(PROJ_ROOT)/rtl/common/common.f $(PROJ_ROOT)/rtl/bus/bus.f
 RTL_TOP_bus      := bus_top
-SIM_FLIST_bus    := $(PROJ_ROOT)/vendor/common_verification.f $(PROJ_ROOT)/vendor/axi_sim.f
+SIM_FLIST_bus    := $(PROJ_ROOT)/vendor/common_verification.f $(PROJ_ROOT)/vendor/axi_sim.f \
+                    $(PROJ_ROOT)/verif/assertions/bus.f
 
 .DEFAULT_GOAL := help
 .PHONY: help clean

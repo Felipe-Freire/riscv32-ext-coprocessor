@@ -26,6 +26,7 @@ TB=tb_dma_coproc
 TB=tb_soc_pkg
 TB=tb_bus_axi_xbar
 TB=tb_bus_obi2axi
+TB=tb_bus_top
 
 # UVM: rv32_pc
 UVM=core_pc TEST=core_pc_smoke_test
