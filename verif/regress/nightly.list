@@ -20,3 +20,8 @@ UVM=coproc TEST=coproc_matmul_directed_test PLUSARGS=+BIG_K
 TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
 TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
 TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
+
+# Core bridge: random loads and stores against random stalls
+TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
+TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
+TB=tb_bus_obi2axi SEED=random PLUSARGS=+OPS=20000
