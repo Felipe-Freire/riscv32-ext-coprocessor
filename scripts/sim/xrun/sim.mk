@@ -6,6 +6,9 @@
 # of the environment name (core_pc -> core).
 # Gate level (GLS=1): the RTL is replaced by the netlist `make syn` wrote for TOP (default: the
 # block's top), the packages of the block and the cell models; SDF=1 adds the delays of SDF_FILE.
+# Testbench-only file lists (SIM_FLIST_<block> in the top-level Makefile: verification IP, or the RTL
+# of another block a testbench runs against) are compiled after the design and before the testbench,
+# at RTL and at gate level. Synthesis never reads them.
 
 XRUN      ?= xrun
 TB        ?=
@@ -59,8 +62,10 @@ else
 SIM_DESIGN = $(foreach f,$(RTL_FLIST_$(SIM_BLOCK)),-f $(f))
 endif
 
+SIM_FLISTS = $(foreach f,$(SIM_FLIST_$(SIM_BLOCK)),-f $(f))
+
 SIM_ARGS = -64bit -sv -timescale 1ns/1ps -licqueue -l xrun.log -svseed $(SEED) \
-           $(SIM_DESIGN) $(SIM_TB) -top $(SIM_TOP) \
+           $(SIM_DESIGN) $(SIM_FLISTS) $(SIM_TB) -top $(SIM_TOP) \
            $(if $(strip $(UVM)),-uvm -uvmhome CDNS-1.2 +UVM_TESTNAME=$(TEST) +UVM_VERBOSITY=$(VERBOSITY)) \
            $(if $(filter 1,$(WAVES)),-access +r -input $(PROJ_ROOT)/scripts/sim/xrun/waves.tcl) \
            $(if $(filter 1,$(GUI)),-gui -access +rwc) \
