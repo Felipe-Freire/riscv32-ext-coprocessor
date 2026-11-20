@@ -1,0 +1,12 @@
+# Gate-level regression, on the netlists of `make syn BLOCK=core` and `make syn BLOCK=coproc`
+# (run both first, with the same technology). Run it with `make regress LIST=verif/regress/gls.list`.
+# coproc_cdc_test is left out: it runs clk_acc_i up to 4x faster than clk_i, faster than the
+# netlist was synthesized for (ACC_CLK_PERIOD), so with SDF its timing checks fail by design.
+
+TB=tb_rv32_core GLS=1
+TB=tb_rv32_core GLS=1 SDF=1
+
+UVM=coproc TEST=coproc_regs_test GLS=1
+UVM=coproc TEST=coproc_matmul_directed_test GLS=1
+UVM=coproc TEST=coproc_matmul_directed_test GLS=1 SDF=1
+UVM=coproc TEST=coproc_matmul_rand_test GLS=1 SDF=1

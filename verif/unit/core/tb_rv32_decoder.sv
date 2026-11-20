@@ -22,7 +22,7 @@ module tb_rv32_decoder;
 
   task automatic fail(string name, string what);
     errors++;
-    $display("FAIL: %s: %s", name, what);
+    $error("%s: %s", name, what);
   endtask
 
   // Compares the whole control word. exc_cause only counts when exc is set.
@@ -229,7 +229,7 @@ module tb_rv32_decoder;
     trap("system funct3",  32'h0000_4073, EXC_ILLEGAL_INSTR);
 
     if (errors == 0) $display("PASS: %0d checks", checks);
-    else             $display("FAIL: %0d errors in %0d checks", errors, checks);
+    else             $fatal(1, "%0d errors in %0d checks", errors, checks);
     $finish;
   end
 

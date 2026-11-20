@@ -118,7 +118,7 @@ module tb_rv32_core;
       @(negedge clk);
       if (!data_req || data_addr !== addr) begin
         errors++;
-        $display("FAIL: data request dropped or changed before its grant at %0t", $time);
+        $error("data request dropped or changed before its grant");
       end
     end
   end
@@ -141,8 +141,7 @@ module tb_rv32_core;
     image = image_path();
     fd = $fopen(image, "r");
     if (fd == 0) begin
-      $display("FAIL: cannot open %s", image);
-      $finish;
+      $fatal(1, "cannot open %s", image);
     end
     $fclose(fd);
     imem = '{default: '0};   // past the program: illegal instruction, not X
@@ -153,13 +152,13 @@ module tb_rv32_core;
     for (cycles = 0; cycles < 5000 && !tohost_valid; cycles++) @(negedge clk);
 
     if (!tohost_valid) begin
-      $display("FAIL: timeout after %0d cycles", cycles);
+      $fatal(1, "timeout after %0d cycles", cycles);
     end else if (!tohost[0]) begin
-      $display("FAIL: check %0d failed", tohost[31:1] + 1);
+      $fatal(1, "check %0d failed", tohost[31:1] + 1);
     end else if (tohost[31:1] != imem[1]) begin
-      $display("FAIL: %0d of %0d checks ran", tohost[31:1], imem[1]);
+      $fatal(1, "%0d of %0d checks ran", tohost[31:1], imem[1]);
     end else if (errors != 0) begin
-      $display("FAIL: %0d bus errors", errors);
+      $fatal(1, "%0d bus errors", errors);
     end else begin
       $display("PASS: %0d checks, %0d cycles", imem[1], cycles);
     end

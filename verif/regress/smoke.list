@@ -1,0 +1,28 @@
+# Smoke regression: every directed testbench and every UVM test once, with a fixed seed.
+# Run it with `make regress` (this is the default list).
+
+# Directed testbenches: core
+TB=tb_rv32_alu
+TB=tb_rv32_branch_cond
+TB=tb_rv32_decoder
+TB=tb_rv32_regfile
+TB=tb_rv32_pc
+TB=tb_rv32_redirect_logic
+TB=tb_rv32_if_stage
+TB=tb_rv32_id_stage
+TB=tb_rv32_core
+
+# Directed testbenches: coprocessor
+TB=tb_coproc_pe_array
+TB=tb_coproc_top
+
+# UVM: rv32_pc
+UVM=core_pc TEST=core_pc_smoke_test
+UVM=core_pc TEST=core_pc_stress_test
+
+# UVM: coproc_top
+UVM=coproc TEST=coproc_regs_test
+UVM=coproc TEST=coproc_matmul_directed_test
+UVM=coproc TEST=coproc_matmul_rand_test
+UVM=coproc TEST=coproc_cdc_test
+UVM=coproc TEST=coproc_reset_test

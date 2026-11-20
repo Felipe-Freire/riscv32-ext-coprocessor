@@ -74,7 +74,7 @@ module tb_rv32_if_stage;
 
   task automatic fail(string msg);
     errors++;
-    if (errors <= 10) $display("FAIL: %s", msg);
+    if (errors <= 10) $error("%s", msg);
   endtask
 
   always @(posedge clk) begin
@@ -114,7 +114,7 @@ module tb_rv32_if_stage;
       $display("PASS: %0d cycles, %0d instructions to ID, %0d redirects during a stall",
                cycles, accepted, redirects_in_stall);
     end else begin
-      $display("FAIL: %0d errors in %0d cycles", errors, cycles);
+      $fatal(1, "%0d errors in %0d cycles", errors, cycles);
     end
     $finish;
   end

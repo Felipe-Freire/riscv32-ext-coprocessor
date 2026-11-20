@@ -57,9 +57,9 @@ make help                 # list available targets
 
 | Tool | Purpose |
 |---|---|
-| SystemVerilog/UVM simulator | UVM simulation (to be defined) |
+| Cadence Xcelium (`xrun`) | Simulation: directed, UVM and gate level ([`scripts/`](scripts/README.md)) |
 | RISC-V GNU toolchain (`riscv64-unknown-elf-gcc`) | Building programs in [`sw/`](sw/README.md) |
-| Cadence Genus (`genus`) | Synthesis in [`syn/`](syn/README.md) (PDK to be defined) |
+| Cadence Genus (`genus`) | Synthesis and STA in [`syn/`](syn/README.md), GPDK045 |
 
 Detailed setup instructions will live in [`docs/guides/`](docs/README.md#guides).
 

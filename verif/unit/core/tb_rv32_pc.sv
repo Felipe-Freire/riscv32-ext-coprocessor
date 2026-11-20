@@ -127,7 +127,7 @@ module tb_rv32_pc;
     if (num_errors == 0) begin
       $display("PASS: %0d checks", num_checks);
     end else begin
-      $display("FAIL: %0d errors in %0d checks", num_errors, num_checks);
+      $fatal(1, "%0d errors in %0d checks", num_errors, num_checks);
     end
     $finish;
   end

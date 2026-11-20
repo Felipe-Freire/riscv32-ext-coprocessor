@@ -33,7 +33,7 @@ module tb_rv32_regfile;
     if (got !== expected(addr)) begin
       errors++;
       if (errors <= 10) begin
-        $display("FAIL: %s x%0d = %h, expected %h", port, addr, got, expected(addr));
+        $error("%s x%0d = %h, expected %h", port, addr, got, expected(addr));
       end
     end
   endtask
@@ -62,7 +62,7 @@ module tb_rv32_regfile;
       if (we && rd != 0) ref_rf[rd] = wdata;
     end
     if (errors == 0) $display("PASS: %0d reads (%0d write-through)", checks, write_through);
-    else             $display("FAIL: %0d of %0d reads", errors, checks);
+    else             $fatal(1, "%0d of %0d reads failed", errors, checks);
     $finish;
   end
 

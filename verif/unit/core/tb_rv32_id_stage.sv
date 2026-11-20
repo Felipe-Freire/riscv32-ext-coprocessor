@@ -62,7 +62,7 @@ module tb_rv32_id_stage;
     checks++;
     if (got !== exp) begin
       errors++;
-      $display("FAIL: %s = %h, expected %h", what, got, exp);
+      $error("%s = %h, expected %h", what, got, exp);
     end
   endtask
 
@@ -245,7 +245,7 @@ module tb_rv32_id_stage;
     eq("trap during freeze", idex_valid, 1'b0);
 
     if (errors == 0) $display("PASS: %0d checks", checks);
-    else             $display("FAIL: %0d errors in %0d checks", errors, checks);
+    else             $fatal(1, "%0d errors in %0d checks", errors, checks);
     $finish;
   end
 

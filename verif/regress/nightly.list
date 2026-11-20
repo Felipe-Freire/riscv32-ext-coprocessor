@@ -1,0 +1,17 @@
+# Nightly regression: the random UVM tests with new seeds on every run (the table shows them).
+# Run it with `make regress LIST=verif/regress/nightly.list JOBS=4`.
+
+UVM=core_pc TEST=core_pc_stress_test SEED=random
+UVM=core_pc TEST=core_pc_stress_test SEED=random
+UVM=core_pc TEST=core_pc_stress_test SEED=random
+
+UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=100
+UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=100
+UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=100
+UVM=coproc TEST=coproc_cdc_test SEED=random
+UVM=coproc TEST=coproc_cdc_test SEED=random
+UVM=coproc TEST=coproc_cdc_test SEED=random
+UVM=coproc TEST=coproc_reset_test SEED=random
+UVM=coproc TEST=coproc_reset_test SEED=random
+UVM=coproc TEST=coproc_reset_test SEED=random
+UVM=coproc TEST=coproc_matmul_directed_test PLUSARGS=+BIG_K
