@@ -2,10 +2,7 @@
 // Acts as the RV32I host configuring coproc_top and dma_top via AXI4-Lite according to sw/README.md,
 // runs end-to-end matrix multiplications (C = A * B, int8 -> int32) and checks L2 against a golden model.
 //
-// Run from project root:
-//   export PROJ_ROOT=$(pwd)
-//   xrun -sv -top tb_dma_coproc -f vendor/common_cells.f -f rtl/coproc/coproc.f -f rtl/dma/dma.f verif/unit/dma/tb_dma_coproc.sv
-// Add "-access +rwc -gui" to open waveforms in SimVision.
+// Run: make sim TB=tb_dma_coproc (WAVES=1 records waves.shm for SimVision).
 //`timescale 1ns/1ps
 
 module tb_dma_coproc;
@@ -24,6 +21,12 @@ module tb_dma_coproc;
 
   initial clk_i = 1'b0;
   always #5 clk_i = ~clk_i;        // 100 MHz system clock
+
+  // A handshake that never completes ends the run instead of hanging the regression.
+  initial begin : watchdog
+    #1ms;
+    $fatal(1, "timeout: the test did not finish in 1 ms");
+  end
 
   initial clk_acc_i = 1'b0;
   always #4 clk_acc_i = ~clk_acc_i; // 125 MHz accelerator clock
@@ -139,8 +142,8 @@ module tb_dma_coproc;
       if (!rd_busy) begin
         if (axi_req.ar_valid) begin
           if (({1'b0, axi_req.ar.addr[11:4]} + {1'b0, axi_req.ar.len} + 9'd1) > 9'd256) begin
-            $display("[FAIL] AXI4 AR crossed 4 KiB boundary! addr=0x%08h len=%0d",
-                     axi_req.ar.addr, axi_req.ar.len);
+            $error("AXI4 AR crossed 4 KiB boundary! addr=0x%08h len=%0d",
+                   axi_req.ar.addr, axi_req.ar.len);
             err_cnt++;
           end
           rd_busy         <= 1'b1;
@@ -188,8 +191,8 @@ module tb_dma_coproc;
         2'd0: begin
           if (axi_req.aw_valid) begin
             if (({1'b0, axi_req.aw.addr[11:4]} + {1'b0, axi_req.aw.len} + 9'd1) > 9'd256) begin
-              $display("[FAIL] AXI4 AW crossed 4 KiB boundary! addr=0x%08h len=%0d",
-                       axi_req.aw.addr, axi_req.aw.len);
+              $error("AXI4 AW crossed 4 KiB boundary! addr=0x%08h len=%0d",
+                     axi_req.aw.addr, axi_req.aw.len);
               err_cnt++;
             end
             wr_id   <= axi_req.aw.id;
@@ -423,8 +426,8 @@ module tb_dma_coproc;
             exp      = mat_c_exp[ti*8 + r][tj*8 + c];
             if (got !== exp) begin
               if (mismatches < 10) begin
-                $display("[FAIL] %s mismatch at C[%0d][%0d] (tile %0d,%0d): got=%0d exp=%0d",
-                         name, ti*8 + r, tj*8 + c, ti, tj, got, exp);
+                $error("%s mismatch at C[%0d][%0d] (tile %0d,%0d): got=%0d exp=%0d",
+                       name, ti*8 + r, tj*8 + c, ti, tj, got, exp);
               end
               mismatches++;
             end
@@ -436,7 +439,7 @@ module tb_dma_coproc;
     if (mismatches == 0) begin
       $display("[PASS] %s: all %0d int32 elements in L2 match golden model!", name, M * N);
     end else begin
-      $display("[FAIL] %s: %0d mismatches!", name, mismatches);
+      $error("%s: %0d mismatches!", name, mismatches);
       err_cnt += mismatches;
     end
   endtask
@@ -467,12 +470,11 @@ module tb_dma_coproc;
     // Test 3: Rectangular 16x8, K=1 (odd K=1 -> LEN=8 bytes on Ch0 & Ch1)
     run_matmul("Test 3 (Rect 16x8, K=2)", 16, 8, 2, 19);
 
-    $display("============================================================");
-    if (err_cnt == 0)
-      $display("TB_DMA_COPROC: PASSED (0 errors)");
-    else
-      $display("TB_DMA_COPROC: FAILED (%0d errors)", err_cnt);
-    $display("============================================================");
+    if (err_cnt == 0) begin
+      $display("PASS: tb_dma_coproc, all checks passed");
+    end else begin
+      $fatal(1, "tb_dma_coproc: %0d errors", err_cnt);
+    end
     $finish;
   end
 

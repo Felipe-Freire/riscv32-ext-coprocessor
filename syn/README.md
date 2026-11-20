@@ -21,7 +21,7 @@ make sta BLOCK=coproc CORNER=slow_vdd1v2        # time the coproc_top netlist at
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `BLOCK` | `core` | `core` or `coproc`: selects the file lists and the default top |
+| `BLOCK` | `core` | `core`, `coproc` or `dma`: selects the file lists and the default top |
 | `TOP` | Block top | Any module of the block's file lists |
 | `CLK_PERIOD`, `ACC_CLK_PERIOD` | `10`, `CLK_PERIOD` | `clk_i` and `clk_acc_i` periods in ns |
 | `VT`, `CORNER`, `RC_CORNER` | `svt`, `slow_vdd1v0`, `rcworst` | GPDK045 flavour, Liberty corner and wire estimation rules |

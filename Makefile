@@ -6,11 +6,15 @@ BUILD_DIR ?= $(PROJ_ROOT)/build
 
 # Blocks: RTL file lists in compile order (vendor IP first) and the top module. Synthesis, STA and
 # gate-level simulation pick one with BLOCK=<name>; simulation finds it from the testbench.
-BLOCKS           := core coproc
+BLOCKS           := core coproc dma
 RTL_FLIST_core   := $(PROJ_ROOT)/rtl/core/core.f
 RTL_TOP_core     := rv32_core
 RTL_FLIST_coproc := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/rtl/coproc/coproc.f
 RTL_TOP_coproc   := coproc_top
+# The coprocessor list is here for tb_dma_coproc, which runs the DMA against coproc_top.
+RTL_FLIST_dma    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/rtl/coproc/coproc.f \
+                    $(PROJ_ROOT)/rtl/dma/dma.f
+RTL_TOP_dma      := dma_top
 
 .DEFAULT_GOAL := help
 .PHONY: help clean

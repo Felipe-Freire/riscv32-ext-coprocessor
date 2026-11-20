@@ -1,4 +1,6 @@
-//
+// Block testbench for dma_top against a behavioral AXI4 L2: stream unpacking, backpressure,
+// the three channels together (sw/README.md pattern) with irq_o, and AXI error isolation.
+// Run: make sim TB=tb_dma_top
 //`timescale 1ns/1ps
 
 module tb_dma_top;
@@ -48,6 +50,12 @@ module tb_dma_top;
   initial clk_i = 1'b0;
   always #5 clk_i = ~clk_i;
 
+  // A handshake that never completes ends the run instead of hanging the regression.
+  initial begin : watchdog
+    #1ms;
+    $fatal(1, "timeout: the test did not finish in 1 ms");
+  end
+
   // ===========================================================================
   // Behavioral 64 KiB AXI4 128-bit L2 SRAM slave (independent Read & Write)
   // ===========================================================================
@@ -75,8 +83,8 @@ module tb_dma_top;
         if (axi_req_o.ar_valid) begin
           // Protocol check: never cross 4 KiB boundary
           if (({1'b0, axi_req_o.ar.addr[11:4]} + {1'b0, axi_req_o.ar.len} + 9'd1) > 9'd256) begin
-            $display("[FAIL] AXI4 AR crossed 4 KiB boundary! addr=0x%08h len=%0d",
-                     axi_req_o.ar.addr, axi_req_o.ar.len);
+            $error("AXI4 AR crossed 4 KiB boundary! addr=0x%08h len=%0d",
+                   axi_req_o.ar.addr, axi_req_o.ar.len);
             err_cnt++;
           end
           rd_busy           <= 1'b1;
@@ -124,8 +132,8 @@ module tb_dma_top;
         2'd0: begin
           if (axi_req_o.aw_valid) begin
             if (({1'b0, axi_req_o.aw.addr[11:4]} + {1'b0, axi_req_o.aw.len} + 9'd1) > 9'd256) begin
-              $display("[FAIL] AXI4 AW crossed 4 KiB boundary! addr=0x%08h len=%0d",
-                       axi_req_o.aw.addr, axi_req_o.aw.len);
+              $error("AXI4 AW crossed 4 KiB boundary! addr=0x%08h len=%0d",
+                     axi_req_o.aw.addr, axi_req_o.aw.len);
               err_cnt++;
             end
             wr_id   <= axi_req_o.aw.id;
@@ -165,7 +173,7 @@ module tb_dma_top;
   // ===========================================================================
   task automatic check(input string msg, input logic cond);
     if (!cond) begin
-      $display("[FAIL] %s (t=%0t)", msg, $time);
+      $error("%s", msg);
       err_cnt++;
     end else begin
       $display("[PASS] %s", msg);
@@ -370,12 +378,11 @@ module tb_dma_top;
     check("S5: Ch1 unaffected and completed with DONE=1", (st == 32'h0000_0002) && (b_q.size() == 4));
     inject_rd_err = 1'b0;
 
-    $display("========================================");
-    if (err_cnt == 0)
-      $display("TB_DMA_TOP: PASSED (0 errors)");
-    else
-      $display("TB_DMA_TOP: FAILED (%0d errors)", err_cnt);
-    $display("========================================");
+    if (err_cnt == 0) begin
+      $display("PASS: tb_dma_top, all checks passed");
+    end else begin
+      $fatal(1, "tb_dma_top: %0d errors", err_cnt);
+    end
     $finish;
   end
 
