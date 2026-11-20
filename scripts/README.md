@@ -9,7 +9,7 @@ Tool wrappers and helper utilities. Day-to-day use goes through the top-level
 |---|---|
 | [`setup.sh`](setup.sh) | Environment setup: `source scripts/setup.sh` exports `PROJ_ROOT` |
 | [`sim/xrun/`](sim/xrun/) | Xcelium flow: `sim.mk` (`make sim`, `gls`, `sim-list`, `regress`) and `waves.tcl` |
-| [`sim/check_sim.py`](sim/check_sim.py) | PASS/FAIL of one run from its log: `PASS`/`FAIL` lines, or the UVM report summary |
+| [`sim/check_sim.py`](sim/check_sim.py) | PASS/FAIL of one run: exit status and `*E`/`*F` messages (`$error`, `$fatal`, assertions), then the end marker (`PASS` line or UVM summary) |
 | [`sim/regress.py`](sim/regress.py) | Runs the lines of a [regression list](../verif/regress/) and prints a PASS/FAIL table |
 | [`utils/`](utils/) | Helpers: ELF→hex conversion, generators, log and coverage report parsers |
 

@@ -81,7 +81,7 @@ module tb_coproc_pe_array;
         if (acc[r][c] !== expected[r][c]) begin
           errors++;
           if (errors <= 10) begin
-            $display("FAIL: K=%0d acc[%0d][%0d]=%0d expected=%0d",
+            $error("K=%0d acc[%0d][%0d]=%0d expected=%0d",
                      k_len, r, c, acc[r][c], expected[r][c]);
           end
         end
@@ -111,7 +111,7 @@ module tb_coproc_pe_array;
     end
 
     if (errors == 0) $display("PASS: %0d checks", checks);
-    else             $display("FAIL: %0d of %0d checks", errors, checks);
+    else             $fatal(1, "%0d of %0d checks failed", errors, checks);
     $finish;
   end
 

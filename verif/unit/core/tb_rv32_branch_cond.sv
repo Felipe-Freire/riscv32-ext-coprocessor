@@ -35,7 +35,7 @@ module tb_rv32_branch_cond;
 
   task automatic fail(string msg);
     errors++;
-    if (errors <= 10) $display("FAIL: %s", msg);
+    if (errors <= 10) $error("%s", msg);
   endtask
 
   task automatic check(logic expected_result);
@@ -71,7 +71,7 @@ module tb_rv32_branch_cond;
     $display("Errors:          %0d", errors);
     $display("----------------------------");
     if (errors == 0) $display("PASS");
-    else             $display("FAIL");
+    else             $fatal(1, "%0d errors", errors);
 
     $finish;
   end

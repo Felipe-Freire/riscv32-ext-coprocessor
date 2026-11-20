@@ -182,7 +182,7 @@ module tb_coproc_unit #(
             if (got !== exp) begin
               errors++;
               if (errors <= 10) begin
-                $display("FAIL [Array %0dx%0d]: M=%0d N=%0d K=%0d C[%0d][%0d]=%0d expected=%0d",
+                $error("[Array %0dx%0d]: M=%0d N=%0d K=%0d C[%0d][%0d]=%0d expected=%0d",
                          Dim, Dim, m, n, k, int'(Dim)*ti + row, int'(Dim)*tj + col_base + w, got, exp);
               end
             end
@@ -220,11 +220,11 @@ module tb_coproc_unit #(
     checks += 2;
     if (!done) begin
       errors++;
-      $display("FAIL [Array %0dx%0d]: M=%0d N=%0d K=%0d sem pulso done_o", Dim, Dim, m, n, k);
+      $error("[Array %0dx%0d]: M=%0d N=%0d K=%0d sem pulso done_o", Dim, Dim, m, n, k);
     end
     if (busy) begin
       errors++;
-      $display("FAIL [Array %0dx%0d]: M=%0d N=%0d K=%0d busy_o alto apos termino", Dim, Dim, m, n, k);
+      $error("[Array %0dx%0d]: M=%0d N=%0d K=%0d busy_o alto apos termino", Dim, Dim, m, n, k);
     end
 
     @(posedge clk);
@@ -289,9 +289,9 @@ module tb_accelerator_top;
     $display("  Array 2x2 -> Checks: %0d | Erros: %0d", chk_2x2, err_2x2);
     $display("  Array 4x4 -> Checks: %0d | Erros: %0d", chk_4x4, err_4x4);
     if ((err_2x2 + err_4x4) == 0)
-      $display(" STATUS: PASS (%0d checks totais sem erros)", chk_2x2 + chk_4x4);
+      $display("PASS: %0d checks totais sem erros", chk_2x2 + chk_4x4);
     else
-      $display(" STATUS: FAIL (%0d erros encontrados)", err_2x2 + err_4x4);
+      $fatal(1, "%0d erros encontrados", err_2x2 + err_4x4);
     $finish;
   end
 endmodule

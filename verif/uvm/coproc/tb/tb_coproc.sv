@@ -84,4 +84,15 @@ module tb_coproc;
     run_test();
   end
 
+  // UVM ends with exit status 0 even after UVM_ERROR or UVM_FATAL: turn them into a simulator
+  // error, so the run fails (verif/README.md). The counts are read here, not in declarations,
+  // which would run once at time 0.
+  final begin : exit_status
+    uvm_report_server server;
+    int unsigned      errors;
+    server = uvm_report_server::get_server();
+    errors = server.get_severity_count(UVM_ERROR) + server.get_severity_count(UVM_FATAL);
+    if (errors != 0) $error("%0d UVM_ERROR or UVM_FATAL reports", errors);
+  end
+
 endmodule

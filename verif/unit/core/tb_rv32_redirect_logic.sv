@@ -49,7 +49,7 @@ module tb_rv32_redirect_logic;
   task automatic fail(string msg);
     errors++;
     if (errors <= 10)
-      $display("FAIL: %s", msg);
+      $error("%s", msg);
   endtask
 
   // Check all outputs; the target only matters with a redirect
@@ -121,7 +121,7 @@ module tb_rv32_redirect_logic;
     $display("----------------------------");
 
     if (errors == 0) $display("PASS");
-    else             $display("FAIL");
+    else             $fatal(1, "%0d errors", errors);
 
     $finish;
 
