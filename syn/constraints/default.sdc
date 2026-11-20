@@ -14,9 +14,15 @@ set in_ports  [all_inputs]
 
 if {[sizeof_collection $clk_port] > 0} {
   create_clock -name clk -period $::clk_period $clk_port
-  set in_ports [remove_from_collection $in_ports $clk_port]
 } else {
   create_clock -name clk -period $::clk_period
+}
+
+# Clock inputs carry no data: clk_i, and the clocks of other domains (clk_acc_i), which the top's
+# own SDC defines after sourcing this file.
+set clk_ports [get_ports -quiet clk*_i]
+if {[sizeof_collection $clk_ports] > 0} {
+  set in_ports [remove_from_collection $in_ports $clk_ports]
 }
 
 if {[sizeof_collection $rst_ports] > 0} {

@@ -7,7 +7,7 @@ updated by moving the submodule.
 | Directory | Source | Version | License | File list | Used for |
 |---|---|---|---|---|---|
 | `axi/` | [pulp-platform/axi](https://github.com/pulp-platform/axi) | `v0.39.11` | Solderpad 0.51 | [`axi.f`](axi.f) | AXI4 and AXI4-Lite crossbars, bridges, `axi_to_mem`, request/response struct macros (`axi/typedef.svh`) |
-| `common_cells/` | [pulp-platform/common_cells](https://github.com/pulp-platform/common_cells) | `v1.39.0` | Solderpad 0.51 | [`common_cells.f`](common_cells.f) | Dependency of `axi/` (FIFOs, arbiters, address decoders) |
+| `common_cells/` | [pulp-platform/common_cells](https://github.com/pulp-platform/common_cells) | `v1.39.0` | Solderpad 0.51 | [`common_cells.f`](common_cells.f) | Dependency of `axi/`; `cdc_fifo_gray` and `cdc_2phase` in `coproc_top` |
 
 The file lists sit next to the submodules, because the submodules stay unmodified. They follow the
 `sources` order of each project's `Bender.yml`, without tests and simulation-only files.

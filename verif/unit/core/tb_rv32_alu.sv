@@ -38,7 +38,7 @@ module tb_rv32_alu;
 
   task automatic fail(string msg);
     errors++;
-    if (errors <= 10) $display("FAIL: %s", msg);
+    if (errors <= 10) $error("%s", msg);
   endtask
 
   task automatic check(alu_op_e o, logic [31:0] x, logic [31:0] y);
@@ -76,7 +76,7 @@ module tb_rv32_alu;
       o = o.next();
     end while (o != o.first());
     if (errors == 0) $display("PASS: %0d checks", checks);
-    else             $display("FAIL: %0d of %0d checks", errors, checks);
+    else             $fatal(1, "%0d of %0d checks failed", errors, checks);
     $finish;
   end
 
