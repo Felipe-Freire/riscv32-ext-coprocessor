@@ -1,3 +1,3 @@
-// Interconnect: OBI->AXI4 and OBI->AXI4-Lite bridges, AXI4 interconnect,
-// AXI4-Lite address decoder. Example:
-// ${PROJ_ROOT}/rtl/bus/bus_obi2axi.sv
+// Interconnect: the data bus crossbar so far; the OBI bridges, the core data-port demux and bus_top
+// come next. Needs vendor/common_cells.f, vendor/axi.f and rtl/common/common.f (soc_pkg) first.
+${PROJ_ROOT}/rtl/bus/bus_axi_xbar.sv

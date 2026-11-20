@@ -17,7 +17,7 @@ and ports, and [`top/`](top/README.md) holds the memory map and the interfaces b
 | [`core/`](core/README.md) | RV32 core: `rv32_pkg`, units (ALU, decoder, register file, ...) in `units/`, pipeline stages in `stage/` | `rv32_` | Instructions, CSRs, traps, ports |
 | [`coproc/`](coproc/README.md) | Systolic-array coprocessor: PE array, skew and drain, tile sequencer, registers, CDC | `coproc_` | Operation, matrix layout, registers, ports |
 | [`dma/`](dma/README.md) | DMA: registers, 3D address generators, AXI4 burst engine, stream ports | `dma_` | Channels, registers, ports |
-| [`bus/`](bus/) | Interconnect: OBI→AXI4 and OBI→AXI4-Lite bridges, AXI4 interconnect, AXI4-Lite address decoder | `bus_` | In [`top/`](top/README.md#interfaces-between-blocks) |
+| [`bus/`](bus/README.md) | Interconnect: OBI→AXI4 and OBI→AXI4-Lite bridges, AXI4 interconnect, AXI4-Lite address decoder | `bus_` | Crossbars, address decode, errors; SoC view in [`top/`](top/README.md#interfaces-between-blocks) |
 | [`mem/`](mem/) | Memories built from `prim_` macros: TCMs, L2 banks, boot ROM | `mem_` | In [`top/`](top/README.md#memory-map) |
 | [`periph/`](periph/README.md) | Timer | `periph_` | Registers |
 | [`top/`](top/README.md) | SoC top: block integration, reset synchronizers | `soc_` | Memory map, interrupts, clocks, interfaces |

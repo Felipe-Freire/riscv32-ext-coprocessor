@@ -1,4 +1,4 @@
-# Nightly regression: the random UVM tests with new seeds on every run (the table shows them).
+# Nightly regression: the random tests with new seeds on every run (the table shows them).
 # Run it with `make regress LIST=verif/regress/nightly.list JOBS=4`.
 
 UVM=core_pc TEST=core_pc_stress_test SEED=random
@@ -15,3 +15,8 @@ UVM=coproc TEST=coproc_reset_test SEED=random
 UVM=coproc TEST=coproc_reset_test SEED=random
 UVM=coproc TEST=coproc_reset_test SEED=random
 UVM=coproc TEST=coproc_matmul_directed_test PLUSARGS=+BIG_K
+
+# Data bus crossbar: random traffic from both masters
+TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
+TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
+TB=tb_bus_axi_xbar SEED=random PLUSARGS=+TXNS=5000
