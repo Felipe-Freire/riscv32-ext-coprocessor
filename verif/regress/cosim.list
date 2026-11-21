@@ -1,0 +1,66 @@
+# Co-simulation against Spike: every program under sw/tests on tb_rv32_core_cosim, then again with
+# random memory wait states, then generated random programs. Each line builds the program, runs it
+# on Spike and on the RTL core, and compares the two retirement traces (scripts/sim/sim.mk).
+#
+#   make regress LIST=verif/regress/cosim.list JOBS=8
+#   make regress LIST=verif/regress/cosim.list JOBS=8 SIM=verilator
+
+# Directed programs, fast memory
+SW=bitops
+SW=branch
+SW=compare
+SW=crc32
+SW=csr
+SW=div
+SW=fence
+SW=fixedpoint
+SW=hazard
+SW=jump
+SW=loadstore
+SW=logic
+SW=matmul
+SW=memcpy
+SW=mult
+SW=predictor
+SW=recursion
+SW=sort
+SW=sub
+SW=sum
+SW=trap
+SW=upper
+
+# The same with random wait states on the data port: same trace, different cycles
+SW=bitops COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=branch COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=compare COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=crc32 COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=csr COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=div COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=fence COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=fixedpoint COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=hazard COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=jump COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=loadstore COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=logic COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=matmul COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=memcpy COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=mult COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=predictor COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=recursion COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=sort COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=sub COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=sum COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=trap COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=upper COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+
+# Generated straight-line programs (scripts/utils/gen_random_test.py), Spike as the oracle
+SW=random1 RANDOM_COUNT=3000
+SW=random2 RANDOM_COUNT=3000
+SW=random3 RANDOM_COUNT=3000
+SW=random4 RANDOM_COUNT=3000
+SW=random5 RANDOM_COUNT=3000
+SW=random6 RANDOM_COUNT=3000
+SW=random7 RANDOM_COUNT=3000
+SW=random8 RANDOM_COUNT=3000
+SW=random9 RANDOM_COUNT=3000
+SW=random10 RANDOM_COUNT=3000

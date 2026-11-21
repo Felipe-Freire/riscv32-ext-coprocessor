@@ -1,29 +1,41 @@
 #!/usr/bin/env python3
 """Decide whether one simulation passed, from its log and the simulator exit status.
 
-Usage: check_sim.py <log> <exit status> <name> [--uvm]
+Usage: check_sim.py <log> <exit status> <name> [--uvm] [--cosim <spike log> <trace> --start <pc>]
 
-Called by `make sim`. Prints one line, "[sim] PASS <name> ..." or "[sim] FAIL <name>: <reason>",
+Called by `make sim`, whatever the simulator (scripts/sim/sim.mk). Prints one line, "[sim] PASS <name> ..." or "[sim] FAIL <name>: <reason>",
 and exits 0 or 1.
 
 Testbenches report through the simulator (verif/README.md): a failed check is $error, a reason to
 stop is $fatal, and the UVM tops turn UVM_ERROR and UVM_FATAL into $error at the end. Each of those
-makes xrun exit with a nonzero status and writes a *E or *F message, as do compile errors and failed
-assertions, so they fail the run; the reason is the first such message. Exit status 0 does not prove
+makes the simulator exit with a nonzero status and writes a message (xrun: *E or *F, Verilator:
+%Error or %Fatal), as do compile errors and failed assertions, so they fail the run; the reason is
+the first such message. Exit status 0 does not prove
 that the test reached its end, so a run also needs its end marker: a line starting with PASS from a
 directed testbench, the report summary from UVM.
+
+Co-simulation (--cosim): a run that passed has its retirement trace compared against the Spike
+commit log with scripts/utils/cmp_trace.py, and fails on the first divergence.
 
 Timing-check violations of a gate-level run with SDF are counted in the line, without failing it.
 """
 import argparse
 import os
 import re
+import subprocess
 import sys
+
+CMP_TRACE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                         "utils", "cmp_trace.py")
 
 # "xmsim: *E,ERRSEV (tb.sv,41): (time 10 NS)."  or  "xrun: *E,ELBERR: Error (*E) or ..."
 SIM_MESSAGE = re.compile(r"^\S+: \*([EF]),(\w+)\s*(?:\(([^,)]+),(\d+)[^)]*\))?:?\s*(.*)$")
 # "UVM_ERROR /path/scoreboard.svh(120) @ 4500: uvm_test_top.env.sb [SB] C word mismatch"
 # "UVM_FATAL @ 0: reporter [INVTST] Requested test ... not found."
+# "[0] %Error: tb.sv:41: Assertion failed in TOP.tb: text"  or  "%Error: rtl.sv:10:5: syntax error"
+VL_MESSAGE = re.compile(r"^(?:\[\d+\]\s+)?%(Error|Fatal)(?:-\w+)?:\s*(?:([^:\s]+):(\d+):(?:\d+:)?)?\s*(.*)$")
+# Verilator's own follow-up line after $error or $fatal, not a second message.
+VL_STOP = re.compile(r"Verilog \$stop|Exiting due to")
 UVM_REPORT = re.compile(r"^(UVM_ERROR|UVM_FATAL)(?: (\S+)\((\d+)\))? @ ([^:]+): (.*)$")
 
 
@@ -39,6 +51,16 @@ def sim_messages(log, severity):
         # $error and $fatal write their text two lines further down, after the scope.
         if code in ("ERRSEV", "FATSEV") and i + 2 < len(lines):
             text = lines[i + 2].strip()
+        where = f"{os.path.basename(path)}:{number}: " if path else ""
+        messages.append(f"{where}{text}")
+    vl_severity = {"E": "Error", "F": "Fatal"}[severity]
+    for line in lines:
+        m = VL_MESSAGE.match(line)
+        if not m or m.group(1) != vl_severity or VL_STOP.search(m.group(4)):
+            continue
+        path, number, text = m.group(2), m.group(3), m.group(4).strip()
+        # "Assertion failed in TOP.tb: <text>": the text is what the testbench wrote.
+        text = re.sub(r"^Assertion failed in \S+:\s*", "", text)
         where = f"{os.path.basename(path)}:{number}: " if path else ""
         messages.append(f"{where}{text}")
     return messages
@@ -76,7 +98,7 @@ def verdict(log, status, uvm):
     if fatals:
         return f"fatal: {fatals[0]}"
     if status != 0:
-        return f"xrun exit status {status}"
+        return f"simulator exit status {status}"
 
     if uvm and "UVM Report Summary" not in log:
         return "no UVM report summary: the test did not reach its end"
@@ -85,12 +107,28 @@ def verdict(log, status, uvm):
     return None
 
 
+def compare_traces(spike_log, trace, start):
+    """Runs cmp_trace.py, prints its report, returns (None or the reason it failed, summary)."""
+    proc = subprocess.run([sys.executable, CMP_TRACE, spike_log, trace, "--start", start],
+                          stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    print(proc.stdout, end="")
+    lines = [l for l in proc.stdout.splitlines() if l.strip()]
+    first = lines[0] if lines else f"cmp_trace.py exit status {proc.returncode}"
+    if proc.returncode != 0:
+        return first.rstrip(":"), None
+    m = re.match(r"MATCH: (\d+ instructions identical to Spike)", first)
+    return None, m.group(1) if m else first
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("log")
     parser.add_argument("status", type=int)
     parser.add_argument("name")
     parser.add_argument("--uvm", action="store_true", help="UVM test: read the report summary")
+    parser.add_argument("--cosim", nargs=2, metavar=("SPIKE_LOG", "TRACE"),
+                        help="compare the retirement trace against the Spike commit log")
+    parser.add_argument("--start", default="0x80000000", help="first PC of the Spike log to compare")
     args = parser.parse_args()
 
     try:
@@ -100,13 +138,17 @@ def main():
         print(f"[sim] FAIL {args.name}: cannot read {args.log} ({e.strerror})")
         return 1
 
-    seed = re.search(r"SVSEED.*?(-?\d+)\s*$", log, re.M)
+    seed = re.search(r"(?:SVSEED.*?|^verilator seed )(-?\d+)\s*$", log, re.M)
     notes = f" (seed {seed.group(1)})" if seed else ""
     violations = log.count("Timing violation")
     if violations:
         notes += f", {violations} timing violations in xrun.log"
 
     reason = verdict(log, args.status, args.uvm)
+    if reason is None and args.cosim:
+        reason, summary = compare_traces(*args.cosim, args.start)
+        if summary:
+            notes += f": {summary}"
     if reason is None:
         print(f"[sim] PASS {args.name}{notes}")
         return 0
