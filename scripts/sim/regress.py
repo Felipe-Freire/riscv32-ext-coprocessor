@@ -7,6 +7,7 @@ Called by `make regress LIST=<list> JOBS=<n>`. A list has one run per line, writ
 arguments of `make sim`; '#' starts a comment:
 
     TB=tb_rv32_core
+    SW=sort COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
     UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=20
 
 SEED=random is replaced by a seed drawn here, so each run has its own directory and the table
@@ -43,10 +44,13 @@ def read_lists(paths):
 
 
 def run_name(args):
-    """A short label for the table: TB, or TEST plus SEED, plus the other arguments."""
+    """A short label for the table: TB, SW, or TEST plus SEED, plus the other arguments."""
     values = dict(a.split("=", 1) for a in args if "=" in a)
-    name = values.get("TB") or f"{values.get('TEST', '?')} seed {values.get('SEED', '1')}"
-    extra = [a for a in args if a.split("=", 1)[0] not in ("TB", "UVM", "TEST", "SEED")]
+    if "SW" in values:
+        name = " ".join(filter(None, (values.get("TB"), f"SW={values['SW']}")))
+    else:
+        name = values.get("TB") or f"{values.get('TEST', '?')} seed {values.get('SEED', '1')}"
+    extra = [a for a in args if a.split("=", 1)[0] not in ("TB", "SW", "UVM", "TEST", "SEED")]
     return " ".join([name] + extra)
 
 

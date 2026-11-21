@@ -116,6 +116,11 @@ def read_dut(path):
             if len(fields) != 4:
                 sys.exit(f"cmp_trace.py: {path}:{lineno}: expected 4 fields, got {len(fields)}")
             pc, instr, rd, value = fields
+            # A 4-state simulator writes X or Z for an unknown value; Spike never has one.
+            if re.search(r"[xXzZ]", line):
+                print(f"MISMATCH at instruction {len(records)}: X or Z on the core "
+                      f"(trace line {lineno}: {line})")
+                sys.exit(1)
             records.append(Record(int(pc, 16), int(instr, 16), int(rd, 10), int(value, 16), "dut"))
     return records
 

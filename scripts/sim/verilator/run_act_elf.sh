@@ -34,7 +34,7 @@ done
 
 SIM="${BUILD_DIR}/verilator/tb_rv32_core_cosim/tb_rv32_core_cosim"
 if [[ ! -x "${SIM}" ]]; then
-  make -C "${PROJ_ROOT}" --no-print-directory cosim-build >&2
+  make -C "${PROJ_ROOT}" --no-print-directory SIM=verilator TB=tb_rv32_core_cosim sim-build >&2
 fi
 
 NAME="$(basename "${ELF}" .elf)"

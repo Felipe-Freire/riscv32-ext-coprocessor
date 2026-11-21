@@ -38,23 +38,21 @@ instruction, so the first divergence in PC, instruction word or register write i
 its context instead of showing up as a wrong result at the end.
 
 ```bash
-make cosim TEST=sum          # one program: build it, run both, compare
-make cosim-all               # every program under sw/tests, as a table
-
-scripts/sim/verilator/run_cosim.py            # what cosim-all calls, with options
-scripts/sim/verilator/run_cosim.py sort 'm*'  # a selection, by name or glob
-scripts/sim/verilator/run_cosim.py -j 4 -x    # four at a time, stop at the first failure
-scripts/sim/verilator/run_cosim.py --wait     # with memory wait states
-scripts/sim/verilator/run_cosim.py --random 20 --random-count 3000   # generated programs
-scripts/sim/verilator/run_cosim.py --list     # the available tests
+make sim SW=sum                                    # one program: build it, run both, compare
+make sim SW=sum SIM=verilator                      # the same on Verilator
+make sim SW=random7 RANDOM_COUNT=3000              # a generated program, seed 7
+make regress LIST=verif/regress/cosim.list JOBS=8  # every program, with and without wait states
+make sim SW=rdv-riscv_rand_instr_test-7            # a riscv-dv program, seed 7 (riscv-dv/)
+make regress LIST=verif/regress/riscv_dv.list JOBS=8
 ```
 
-[`run_cosim.py`](../scripts/sim/verilator/run_cosim.py) runs `make cosim` per test, in parallel,
-and prints retired instructions, cycles and IPC per test with the failures collected at the end.
-A failure is one of four kinds: `BUILD` (the program did not compile or link), `FAIL` (a `CHECK`
-in the program failed, or the testbench timed out), `MISMATCH` (the core and Spike diverged, with
-the instruction and its context) and otherwise `PASS`. A `FAIL` reported by Spike means the
-program itself is wrong, since Spike is the reference.
+`SW=` is part of `make sim`, so it works on every simulator and in any regression list. It builds
+the program, runs Spike on it, runs `tb_rv32_core_cosim` (or `TB=`) on its image, and
+[`check_sim.py`](../scripts/sim/check_sim.py) compares the two traces once the simulation itself
+passed. The `[sim]` line says why a run failed: the build, a `CHECK` that failed on Spike (the
+program itself is wrong, since Spike is the reference), a `$fatal` of the testbench (timeout,
+nonzero exit code, OBI error), or `MISMATCH` with the first divergent instruction and its context
+above it in the log.
 
 Both sides see the same 64 KiB memory at `0x8000_0000`, loaded from the same ELF: Spike directly,
 the testbench through the `$readmemh` image from
@@ -62,16 +60,16 @@ the testbench through the `$readmemh` image from
 `(exit code << 1) | 1` to the HTIF `tohost` word, which stops Spike and the testbench at the same
 store ([`sw/common/crt0.S`](../sw/common/crt0.S)).
 
-Everything lands in `build/`: `build/sw/<test>.{elf,hex,dis,sym,spike.log}` and
-`build/verilator/tb_rv32_core_cosim/<test>.{trace,log}`.
+Everything lands in `build/`: `build/sw/<program>.{elf,hex,dis,sym,spike.log}` and
+`build/sim/<sim>/cosim_<program>/` with the simulator log and `trace.txt`.
 
 ### Memory wait states
 
-By default the data port is granted at once and answers the next cycle. `--wait`, or
-`COSIM_GNT_WAIT` / `COSIM_RSP_WAIT` / `COSIM_WAIT_SEED`, delays the grant and the response, which
+By default the data port is granted at once and answers the next cycle.
+`COSIM_GNT_WAIT` / `COSIM_RSP_WAIT` / `COSIM_WAIT_SEED` (e.g. `3 3 1`) delay the grant and the response, which
 exercises the freeze path of the core: EX waiting for a grant, MEM waiting for a response, the
 whole pipeline held. The reference cannot see any of it, so the retirement trace has to come out
-identical; only the cycle count changes, which is why the report prints IPC. The testbench also
+identical; only the cycle count changes, which the `PASS` line of the testbench reports. The testbench also
 checks the OBI rule that a request stays unchanged until it is granted.
 
 ### What is compared, and what cannot be

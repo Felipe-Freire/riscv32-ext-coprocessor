@@ -1,5 +1,6 @@
 // rv32_core running one program image, writing a retirement trace for comparison against Spike
-// (scripts/utils/cmp_trace.py). Driven by scripts/sim/verilator/verilator.mk, target `cosim`.
+// (scripts/utils/cmp_trace.py). Run with `make sim SW=<program>` (scripts/sim/sim.mk), on any
+// simulator. Failures are $error and $fatal, so they reach the exit status (verif/README.md).
 //
 // One 4 MiB RAM at 0x8000_0000 serves both the instruction and the data port, with the same
 // contents and the same base address as Spike's memory, so the only difference between the two
@@ -113,7 +114,8 @@ module tb_rv32_core_cosim;
     return (lfsr_q >> 8) % unsigned'(max_wait + 1);
   endfunction
 
-  always_ff @(posedge clk or negedge rst_n) begin : dmem
+  // Plain always, not always_ff: lfsr_q is seeded from a plusarg in the initial block below.
+  always @(posedge clk or negedge rst_n) begin : dmem
     if (!rst_n) begin
       pending_q    <= 1'b0;
       rsp_err_q    <= 1'b0;
@@ -160,7 +162,7 @@ module tb_rv32_core_cosim;
       @(negedge clk);
       if (!data_req || data_addr !== addr || data_we !== we) begin
         obi_errors++;
-        $display("FAIL: data request dropped or changed before its grant at %0t", $time);
+        $error("data request dropped or changed before its grant at %0t", $time);
       end
     end
   end
@@ -177,7 +179,8 @@ module tb_rv32_core_cosim;
     if (!dut.freeze) wb_pc_q <= dut.exmem.pc;
   end
 
-  always_ff @(posedge clk) begin : trace
+  // Plain always, not always_ff: retired is also read and initialised outside this block.
+  always @(posedge clk) begin : trace
     logic [XLEN-1:0] pc;
     if (rst_n && dut.memwb_valid && !dut.freeze) begin
       pc = {wb_pc_q, 2'b00};
@@ -197,12 +200,10 @@ module tb_rv32_core_cosim;
     int    timeout, cycles;
 
     if (!$value$plusargs("HEX=%s", image)) begin
-      $display("FAIL: no +HEX=<image> given");
-      $finish;
+      $fatal(1, "no +HEX=<image> given");
     end
     if (!$value$plusargs("TOHOST=%h", tohost_addr)) begin
-      $display("FAIL: no +TOHOST=<address> given");
-      $finish;
+      $fatal(1, "no +TOHOST=<address> given");
     end
     if (!$value$plusargs("TIMEOUT=%d", timeout)) timeout = 100000;
     if (!$value$plusargs("GNT_WAIT=%d", gnt_wait_max))  gnt_wait_max = 0;
@@ -216,8 +217,7 @@ module tb_rv32_core_cosim;
     if ($value$plusargs("TRACE=%s", trace_path)) begin
       trace_fd = $fopen(trace_path, "w");
       if (trace_fd == 0) begin
-        $display("FAIL: cannot write %s", trace_path);
-        $finish;
+        $fatal(1, "cannot write %s", trace_path);
       end
     end
 
@@ -228,11 +228,11 @@ module tb_rv32_core_cosim;
     if (trace_fd != 0) $fclose(trace_fd);
 
     if (!tohost_valid) begin
-      $display("FAIL: timeout after %0d cycles, %0d instructions retired", cycles, retired);
+      $fatal(1, "timeout after %0d cycles, %0d instructions retired", cycles, retired);
     end else if (tohost != 32'd1) begin
-      $display("FAIL: program exited with code %0d (tohost 0x%08h)", tohost >> 1, tohost);
+      $fatal(1, "program exited with code %0d (tohost 0x%08h)", tohost >> 1, tohost);
     end else if (obi_errors != 0) begin
-      $display("FAIL: %0d OBI protocol errors", obi_errors);
+      $fatal(1, "%0d OBI protocol errors", obi_errors);
     end else begin
       $display("PASS: program exited with code 0, %0d instructions retired in %0d cycles",
                retired, cycles);

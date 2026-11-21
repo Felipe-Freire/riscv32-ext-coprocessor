@@ -5,7 +5,7 @@ Target configuration for running the official RISC-V architectural tests
 
 **Status: prepared, not yet run.** The files here are complete and the DUT run command is tested,
 but the framework itself cannot be built in this checkout yet: see [Prerequisites](#prerequisites).
-Nothing in `make cosim-all` depends on this directory.
+Nothing in the co-simulation flow (`make sim SW=`) depends on this directory.
 
 | File | Role |
 |---|---|
@@ -16,7 +16,7 @@ Nothing in `make cosim-all` depends on this directory.
 
 ## Why bother, given the cosim flow
 
-The two check different things. `make cosim-all` compares every retired instruction against Spike,
+The two check different things. The co-simulation (`make sim SW=`) compares every retired instruction against Spike,
 which is the stronger check but only over the programs in [`sw/tests`](../../sw/README.md) and the
 random ones. The architectural tests are the *coverage*: generated from a test plan, one testcase
 per coverpoint bin, including the corners nobody writes by hand.

@@ -30,12 +30,12 @@ never hard-code them. Addresses and register maps: [memory map](../rtl/top/READM
 ## Building a test
 
 ```bash
-make sw TEST=sum             # build/sw/sum.{elf,hex,dis,sym,map}
-make cosim TEST=sum          # run it on Spike and on the RTL core and compare the traces
-make cosim-all               # every test under tests/, as a table (run_cosim.py)
+make sw SW=sum                                    # build/sw/sum.{elf,hex,dis,sym,map}
+make sim SW=sum                                   # run it on Spike and on the RTL core, compare
+make regress LIST=verif/regress/cosim.list JOBS=8 # every test under tests/, as a table
 ```
 
-`TEST` is a directory under `tests/`; every `.c` and `.S` in it is linked together with
+`SW` is a directory under `tests/`; every `.c` and `.S` in it is linked together with
 `common/crt0.S`, `common/linker.ld` and any shared helper in `common/*.c`. The flow is in
 [`sw.mk`](sw.mk), the comparison against Spike in
 [verif/README.md](../verif/README.md#comparing-the-core-against-spike).
@@ -71,12 +71,21 @@ that failed, so the exit code says which one broke. Instruction counts are what 
 Random programs are generated rather than written:
 
 ```bash
-scripts/sim/verilator/run_cosim.py --random 20 --random-count 3000
+make sim SW=random7 RANDOM_COUNT=3000    # build/sw/random7/random7.S, seed 7
 ```
 
 [`gen_random_test.py`](../scripts/utils/gen_random_test.py) emits a straight-line RV32I program
 per seed. It needs no expected answer, because the trace comparison against Spike is the answer;
 it only has to be deterministic and to terminate.
+
+[riscv-dv](../verif/riscv-dv/README.md) generates far richer ones: branches, loops, calls, memory
+streams, CSRs, exceptions and their handler.
+
+```bash
+make sim SW=rdv-riscv_rand_instr_test-7                         # test of verif/riscv-dv, seed 7
+make sim SW=rdv-riscv_loop_test-3 RDV_OPTS=+instr_cnt=2000      # with extra generator plusargs
+make regress LIST=verif/regress/riscv_dv.list JOBS=8
+```
 
 Writing a new one: keep the operands of the operation under test in `volatile` variables, or the
 compiler folds the operation away and the test checks nothing. There is no libc, so an initialized
@@ -85,8 +94,8 @@ put a helper in `common/`. Keep every access naturally aligned unless the test i
 since the core and Spike both trap on a misaligned load or store.
 
 A test that needs other build settings puts them in `tests/<test>/test.mk` (`ARCH`, `SPIKE_ISA`,
-`COSIM_TIMEOUT`, ...), which is included before the defaults. `TEST_DIR` builds a test from
-somewhere else entirely, which is how the generated random programs are built out of `build/`.
+`COSIM_TIMEOUT`, ...), which is included before the defaults. `SW_SRC` builds a program from
+somewhere else entirely; the generated random programs live in `build/sw/random<seed>/`.
 
 Two instructions cannot be co-simulated against standalone Spike, both for the same kind of
 reason, and both are left out of the tests on purpose:

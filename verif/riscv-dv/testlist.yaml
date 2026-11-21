@@ -1,0 +1,18 @@
+# riscv-dv tests for rv32_core: riscv-dv's base list plus the misaligned-JALR test of its rv32i
+# target. Not all of them apply to this core; verif/regress/riscv_dv.list runs the ones that do
+# (no interrupts, no debug mode, no unaligned load/store, no CSR test).
+#
+# Each program is one `make sim SW=rdv-<test>-<seed>` (scripts/utils/rdv_gen.py, sw/sw.mk).
+
+- import: <riscv_dv_root>/yaml/base_testlist.yaml
+
+- test: riscv_misaligned_instr_test
+  description: >
+    Instruction address misaligned exception by JALR to an address with addr[1] = 1
+  iterations: 2
+  gen_test: riscv_instr_base_test
+  gen_opts: >
+    +instr_cnt=4000
+    +num_of_sub_program=8
+    +enable_misaligned_instr=1
+  rtl_test: core_base_test

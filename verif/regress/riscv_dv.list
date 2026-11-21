@@ -1,0 +1,54 @@
+# riscv-dv random programs against Spike: each line generates one program (vendor/riscv-dv, on
+# Xcelium), builds it, runs it on Spike and on the RTL core, and compares the retirement traces.
+# SW=rdv-<test>-<seed>: <test> from verif/riscv-dv/testlist.yaml, <seed> the generator seed.
+#
+#   make regress LIST=verif/regress/riscv_dv.list JOBS=8
+#
+# Left out, because the core or the testbench does not have them: riscv_full_interrupt_test (no
+# interrupt sources in tb_rv32_core_cosim), riscv_ebreak_debug_mode_test (no debug mode),
+# riscv_unaligned_load_store_test (misaligned accesses trap), riscv_csr_test (needs a CSR
+# description yaml). riscv_arithmetic_basic_test is first: it has no branches, CSRs or memory.
+
+SW=rdv-riscv_arithmetic_basic_test-1
+SW=rdv-riscv_arithmetic_basic_test-2
+SW=rdv-riscv_arithmetic_basic_test-3
+
+SW=rdv-riscv_rand_instr_test-1
+SW=rdv-riscv_rand_instr_test-2
+SW=rdv-riscv_rand_instr_test-3
+
+SW=rdv-riscv_jump_stress_test-1
+SW=rdv-riscv_jump_stress_test-2
+SW=rdv-riscv_jump_stress_test-3
+
+SW=rdv-riscv_loop_test-1
+SW=rdv-riscv_loop_test-2
+SW=rdv-riscv_loop_test-3
+
+SW=rdv-riscv_rand_jump_test-1
+SW=rdv-riscv_rand_jump_test-2
+SW=rdv-riscv_rand_jump_test-3
+
+SW=rdv-riscv_mmu_stress_test-1
+SW=rdv-riscv_mmu_stress_test-2
+SW=rdv-riscv_mmu_stress_test-3
+
+SW=rdv-riscv_no_fence_test-1
+SW=rdv-riscv_no_fence_test-2
+SW=rdv-riscv_no_fence_test-3
+
+SW=rdv-riscv_illegal_instr_test-1
+SW=rdv-riscv_illegal_instr_test-2
+SW=rdv-riscv_illegal_instr_test-3
+
+SW=rdv-riscv_ebreak_test-1
+SW=rdv-riscv_ebreak_test-2
+SW=rdv-riscv_ebreak_test-3
+
+SW=rdv-riscv_misaligned_instr_test-1
+SW=rdv-riscv_misaligned_instr_test-2
+SW=rdv-riscv_misaligned_instr_test-3
+
+# The same program with random memory wait states: the trace must not change
+SW=rdv-riscv_rand_instr_test-1 COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
+SW=rdv-riscv_mmu_stress_test-1 COSIM_GNT_WAIT=3 COSIM_RSP_WAIT=3 COSIM_WAIT_SEED=1
