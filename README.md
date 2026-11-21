@@ -59,7 +59,7 @@ make help                 # list available targets
 |---|---|
 | Cadence Xcelium (`xrun`) | Simulation: directed, UVM and gate level ([`scripts/`](scripts/README.md)) |
 | RISC-V GNU toolchain (`riscv64-unknown-elf-gcc`) | Building programs in [`sw/`](sw/README.md) |
-| Cadence Genus (`genus`) | Synthesis and STA in [`syn/`](syn/README.md), GPDK045 |
+| Cadence Genus (`genus`) | Synthesis and STA in [`syn/`](syn/README.md): FreePDK45 with the NanGate cells (`make freepdk45`), or GPDK045 |
 
 Detailed setup instructions will live in [`docs/guides/`](docs/README.md#guides).
 

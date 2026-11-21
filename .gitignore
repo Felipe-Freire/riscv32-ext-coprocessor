@@ -3,7 +3,8 @@
 # ---------------------------------------------------------------------------
 build/
 
-# Local copy of the PDK, where syn/tech/tech.mk also looks for it; it is under NDA
+# Local copies of the PDKs, where syn/tech/tech.mk looks for them: GPDK045 is under NDA, and
+# `make freepdk45` downloads the FreePDK45/NanGate views to lib/freepdk45
 /lib/
 
 # ---------------------------------------------------------------------------

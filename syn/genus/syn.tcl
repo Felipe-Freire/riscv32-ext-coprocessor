@@ -9,6 +9,7 @@
 #   SYN_LIBS        Liberty files; empty selects the tutorial library shipped with Genus
 #   SYN_LEFS        technology and cell LEF; empty means no physical data (zero wire load)
 #   SYN_QRC         QRC extraction rules for the wire estimation; optional, used only with SYN_LEFS
+#   SYN_CAPTBL      capacitance table for the wire estimation when there is no QRC (FreePDK45)
 #   SYN_EFFORT      effort of syn_generic, syn_map and syn_opt: low, medium or high
 #
 # Output, in the current directory: genus.log, reports/ and outputs/ (netlist, SDC and SDF).
@@ -37,14 +38,16 @@ set effort     [syn_env SYN_EFFORT medium]
 set libs       [syn_env_opt SYN_LIBS]
 set lefs       [syn_env_opt SYN_LEFS]
 set qrc        [syn_env_opt SYN_QRC]
+set captbl     [syn_env_opt SYN_CAPTBL]
 
-# The default is GPDK045 (gsclib045), chosen in syn/syn.mk. An empty LIBS falls back to the tutorial
-# library: a dozen generic cells whose area and timing only compare RTL versions with each other.
-# The GPDK045 LEF does not describe those cells, so that run has no physical data.
+# The technology (TECH, default FreePDK45) is chosen in syn/tech/tech.mk. An empty LIBS falls back
+# to the tutorial library: a dozen generic cells whose area and timing only compare RTL versions
+# with each other. The LEF of a kit does not describe those cells, so that run has no physical data.
 if {$libs eq ""} {
   set libs [file normalize $::env(CDN_SYNTH_ROOT)/../share/synth/tutorials/tech/tutorial.lib]
-  set lefs ""
-  set qrc  ""
+  set lefs   ""
+  set qrc    ""
+  set captbl ""
   puts "WARNING: LIBS not set, using the Genus tutorial library $libs"
 }
 
@@ -59,11 +62,14 @@ set_db syn_opt_effort        $effort
 read_libs $libs
 
 # With the LEF, Genus estimates each net from the placement it predicts for the cells (PLE)
-# instead of using zero wire load; the QRC rules give the resistance and capacitance per length.
+# instead of using zero wire load. The QRC rules (GPDK045) or the capacitance table (FreePDK45)
+# give the resistance and capacitance per length; with neither, Genus takes them from the LEF.
 if {$lefs ne ""} {
   read_physical -lef $lefs
   if {$qrc ne ""} {
     set_db qrc_tech_file $qrc
+  } elseif {$captbl ne ""} {
+    set_db cap_table_file $captbl
   }
   set_db interconnect_mode ple
 }
@@ -122,7 +128,10 @@ check_design -all            > reports/check_design.rpt
 check_timing_intent -verbose > reports/timing_intent.rpt
 report_messages              > reports/messages.rpt
 
-report_timing -from [all_registers] -to [all_registers] -max_paths 5 > reports/timing_reg2reg.rpt
+# A combinational top (rv32_alu) has no registers, and report_timing stops on an empty -from.
+if {[llength [all_registers]] > 0} {
+  report_timing -from [all_registers] -to [all_registers] -max_paths 5 > reports/timing_reg2reg.rpt
+}
 
 write_hdl > outputs/$top.v
 write_sdc > outputs/$top.sdc
@@ -140,7 +149,15 @@ if {[string is double -strict $slack_ps]} {
   set slack "no timed paths"
 }
 
-set physical [expr {$lefs eq "" ? "none (zero wire load)" : "PLE, [expr {$qrc eq "" ? "no QRC" : $qrc}]"}]
+if {$lefs eq ""} {
+  set physical "none (zero wire load)"
+} elseif {$qrc ne ""} {
+  set physical "PLE, $qrc"
+} elseif {$captbl ne ""} {
+  set physical "PLE, $captbl"
+} else {
+  set physical "PLE, LEF resistance and capacitance"
+}
 
 set clocks "$clk_period ns"
 if {[llength [get_ports -quiet clk_acc_i]] > 0} {

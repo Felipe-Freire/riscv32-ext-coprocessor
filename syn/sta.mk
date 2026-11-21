@@ -22,6 +22,7 @@ endif
 	  STA_TOP=$(TOP) STA_NETLIST=$(abspath $(STA_NETLIST)) STA_SDC=$(abspath $(STA_SDC)) \
 	  STA_CORNER=$(TECH_CORNER) \
 	  SYN_LIBS="$(abspath $(LIBS))" SYN_LEFS="$(abspath $(LEFS))" SYN_QRC="$(abspath $(QRC))" \
+	  SYN_CAPTBL="$(abspath $(CAPTBL))" \
 	  $(GENUS) -batch -no_gui -abort_on_error -overwrite -log genus \
 	    -files $(PROJ_ROOT)/syn/genus/sta.tcl
 	@echo "[sta] Reports in $(STA_RUN_DIR)/reports"

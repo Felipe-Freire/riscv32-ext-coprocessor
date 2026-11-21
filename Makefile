@@ -30,6 +30,7 @@ SIM_FLIST_top    := $(SIM_FLIST_bus)
 .PHONY: help clean
 
 include $(PROJ_ROOT)/syn/tech/tech.mk
+include $(PROJ_ROOT)/syn/tech/freepdk45/freepdk45.mk
 include $(PROJ_ROOT)/syn/syn.mk
 include $(PROJ_ROOT)/syn/sta.mk
 include $(PROJ_ROOT)/scripts/sim/xrun/sim.mk
@@ -41,6 +42,7 @@ Synthesis and timing (Genus), see syn/README.md
   syn             Synthesize BLOCK (or TOP)                  -> build/syn/<top>/
   syn-list        List the blocks and the modules each one can synthesize
   sta             Static timing of the synthesized TOP at CORNER -> build/sta/<top>/<corner>/
+  freepdk45       Download the FreePDK45/NanGate views       -> lib/freepdk45/
 
 Simulation (Xcelium), see scripts/README.md
   sim             Run a directed testbench (TB=) or a UVM test (UVM= TEST=)
@@ -58,9 +60,12 @@ Design and technology (syn, sta, gls)
   ACC_CLK_PERIOD        clk_acc_i period of coproc_top in ns (default: CLK_PERIOD)
   EFFORT                Synthesis effort: low, medium, high (default: medium)
   CLOCK_GATING          1 inserts clock-gating cells, 0 keeps enable muxes (default: 1)
-  VT                    GPDK045 threshold flavour: svt, lvt, hvt (default: svt)
-  CORNER                slow_vdd1v0, slow_vdd1v2, fast_vdd1v0, fast_vdd1v2 (default: slow_vdd1v0)
-  RC_CORNER             Wire estimation rules: rcworst, typical, rcbest (default: rcworst)
+  TECH                  freepdk45 (FreePDK45 + NanGate cells) or gpdk045 (standby) (default: freepdk45)
+  CORNER                freepdk45: typical, slow, fast (default: slow)
+                        gpdk045: slow_vdd1v0, slow_vdd1v2, fast_vdd1v0, fast_vdd1v2 (default: slow_vdd1v0)
+  VT                    gpdk045 threshold flavour: svt, lvt, hvt (default: svt)
+  RC_CORNER             gpdk045 wire estimation rules: rcworst, typical, rcbest (default: rcworst)
+  FREEPDK45, GPDK045    Kit directory (default: lib/freepdk45; the GPDK045 search of syn/tech/tech.mk)
   LIBS= LEFS=           Empty: Genus tutorial library, no physical data
   In use here: $(strip $(TECH_NAME))
 
@@ -82,7 +87,8 @@ Simulation
 Examples
   make syn BLOCK=coproc CLK_PERIOD=5 ACC_CLK_PERIOD=2.5
   make syn BLOCK=core TOP=rv32_alu
-  make sta BLOCK=core CORNER=slow_vdd1v2
+  make sta BLOCK=core CORNER=typical
+  make syn BLOCK=core TECH=gpdk045
   make sim TB=tb_rv32_core
   make sim UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=10
   make gls TB=tb_rv32_core SDF=1

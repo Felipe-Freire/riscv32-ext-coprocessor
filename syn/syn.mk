@@ -31,6 +31,7 @@ syn:
 	  SYN_CLK_PERIOD=$(CLK_PERIOD) SYN_ACC_CLK_PERIOD=$(ACC_CLK_PERIOD) \
 	  SYN_EFFORT=$(EFFORT) SYN_CLOCK_GATING=$(CLOCK_GATING) \
 	  SYN_LIBS="$(abspath $(LIBS))" SYN_LEFS="$(abspath $(LEFS))" SYN_QRC="$(abspath $(QRC))" \
+	  SYN_CAPTBL="$(abspath $(CAPTBL))" \
 	  $(GENUS) -batch -no_gui -abort_on_error -overwrite -log genus \
 	    -files $(PROJ_ROOT)/syn/genus/syn.tcl
 	@echo "$(TECH_CELLS)" > $(SYN_RUN_DIR)/outputs/cells

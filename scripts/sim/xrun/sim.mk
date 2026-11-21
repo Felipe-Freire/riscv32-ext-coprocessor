@@ -58,6 +58,7 @@ ifeq ($(GLS),1)
 # Packages, interfaces and include directories of the block (the testbenches use them), the
 # netlist, and the cell models as a library: zero delay, or the SDF delays with timing checks.
 SIM_DESIGN = -f gls_pkgs.f $(GLS_NETLIST) -v $(abspath $(TECH_MODELS)) -define GLS \
+             $(foreach d,$(if $(TECH_TUTORIAL),,$(CELL_MODEL_DEFINES)),-define $(d)) \
              $(if $(filter 1,$(SDF)),-sdf_cmd_file sdf.cmd -neg_tchk,-nospecify -notimingchecks)
 else
 SIM_DESIGN = $(foreach f,$(RTL_FLIST_$(SIM_BLOCK)),-f $(f))

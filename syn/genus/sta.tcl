@@ -5,7 +5,7 @@
 #   STA_NETLIST  gate-level netlist (default: the one `make syn` wrote)
 #   STA_SDC      constraints (default: the SDC `make syn` wrote, with every value resolved)
 #   STA_CORNER   corner name, for the summary
-#   SYN_LIBS, SYN_LEFS, SYN_QRC  technology, as in syn.tcl
+#   SYN_LIBS, SYN_LEFS, SYN_QRC, SYN_CAPTBL  technology, as in syn.tcl
 #
 # Genus times setup and checks max transition, capacitance and fanout. It has no hold analysis,
 # which needs Tempus. Output, in the current directory: genus.log, reports/ and outputs/<top>.sdf
@@ -29,12 +29,14 @@ set corner  [sta_env STA_CORNER]
 set libs    [sta_env_opt SYN_LIBS]
 set lefs    [sta_env_opt SYN_LEFS]
 set qrc     [sta_env_opt SYN_QRC]
+set captbl  [sta_env_opt SYN_CAPTBL]
 
 # Same fallback as syn.tcl: no Liberty files means the tutorial library, without physical data.
 if {$libs eq ""} {
   set libs [file normalize $::env(CDN_SYNTH_ROOT)/../share/synth/tutorials/tech/tutorial.lib]
-  set lefs ""
-  set qrc  ""
+  set lefs   ""
+  set qrc    ""
+  set captbl ""
   puts "WARNING: LIBS not set, using the Genus tutorial library $libs"
 }
 
@@ -47,6 +49,8 @@ if {$lefs ne ""} {
   read_physical -lef $lefs
   if {$qrc ne ""} {
     set_db qrc_tech_file $qrc
+  } elseif {$captbl ne ""} {
+    set_db cap_table_file $captbl
   }
   set_db interconnect_mode ple
 }
@@ -61,7 +65,9 @@ file mkdir reports outputs
 report_clocks                                                  > reports/clocks.rpt
 report_qor                                                     > reports/qor.rpt
 report_timing -max_paths 20                                    > reports/timing.rpt
-report_timing -from [all_registers] -to [all_registers] -max_paths 10 > reports/timing_reg2reg.rpt
+if {[llength [all_registers]] > 0} {   ;# a combinational top has none, and -from would stop
+  report_timing -from [all_registers] -to [all_registers] -max_paths 10 > reports/timing_reg2reg.rpt
+}
 report_timing -path_type endpoint -max_paths 100               > reports/endpoints.rpt
 report_constraint -all_violators                               > reports/violators.rpt
 check_timing_intent -verbose                                   > reports/check_timing.rpt

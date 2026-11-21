@@ -26,23 +26,36 @@ module tb_rv32_core;
 
   always #5 clk = ~clk;
 
+  // The memories answer a little after the clock edge, as a real memory does and as the input
+  // delay of the synthesis constraints assumes. At gate level with SDF, an input that changed on
+  // the edge itself would break the hold time of the flops it reaches through a short path
+  // (instr_rdata goes straight through the decoder into ID/EX).
+  localparam time InDelay = 1ns;
+
+  logic        instr_err_d, data_gnt_d, data_rvalid_d, data_err_d, irq_timer_d;
+  logic [31:0] instr_rdata_d, data_rdata_d;
+
+  assign #InDelay {instr_rdata_d, instr_err_d, data_gnt_d, data_rvalid_d, data_rdata_d, data_err_d,
+                   irq_timer_d} = {instr_rdata, instr_err, data_gnt, data_rvalid, data_rdata,
+                                   data_err, irq_timer};
+
   rv32_core dut (
     .clk_i         (clk),
     .rst_ni        (rst_n),
     .instr_req_o   (instr_req),
     .instr_addr_o  (instr_addr),
-    .instr_rdata_i (instr_rdata),
-    .instr_err_i   (instr_err),
+    .instr_rdata_i (instr_rdata_d),
+    .instr_err_i   (instr_err_d),
     .data_req_o    (data_req),
-    .data_gnt_i    (data_gnt),
+    .data_gnt_i    (data_gnt_d),
     .data_addr_o   (data_addr),
     .data_we_o     (data_we),
     .data_be_o     (data_be),
     .data_wdata_o  (data_wdata),
-    .data_rvalid_i (data_rvalid),
-    .data_rdata_i  (data_rdata),
-    .data_err_i    (data_err),
-    .irq_timer_i   (irq_timer),
+    .data_rvalid_i (data_rvalid_d),
+    .data_rdata_i  (data_rdata_d),
+    .data_err_i    (data_err_d),
+    .irq_timer_i   (irq_timer_d),
     .irq_external_i(1'b0)
   );
 

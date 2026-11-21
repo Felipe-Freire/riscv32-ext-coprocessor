@@ -30,7 +30,9 @@ Each run compiles and simulates in `build/sim/<run>/` (`xrun.log`, `waves.shm`) 
 directory under `verif/unit/`, or the first word of the UVM environment (`core_pc` → `core`); its
 RTL file lists come from the block table in the [`Makefile`](../Makefile), vendor IP included. At
 gate level the RTL is replaced by the netlist of `make syn`, the block's packages and interfaces
-(`*_pkg.sv`, `*_intf.sv`) and the cell models. A block can also have testbench-only file lists,
+(`*_pkg.sv`, `*_intf.sv`) and the cell models of the technology (`TECH`), compiled with its
+`CELL_MODEL_DEFINES` (`TETRAMAX` for the NanGate cells of FreePDK45: without it their models drive
+the reset pin of the flops back and hold it at X; see [`syn/tech/tech.mk`](../syn/tech/tech.mk)). A block can also have testbench-only file lists,
 `SIM_FLIST_<block>` in the same table (verification IP such as `vendor/axi_sim.f`, or the RTL of
 another block a testbench runs against). They are compiled after the design and before the
 testbench, at RTL and gate level, and synthesis never reads them. `make help` lists every variable.
