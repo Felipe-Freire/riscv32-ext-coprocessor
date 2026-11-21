@@ -8,7 +8,7 @@ goals are in the [verification plan](../docs/README.md#verification).
 | [`unit/`](unit/) | Directed, self-checking testbenches: `unit/<block>/tb_<module>.sv` |
 | [`uvm/`](uvm/) | UVM agents (`agents/`) and environments (`core/`, `core_pc/` for `rv32_pc`, [`coproc/`](uvm/coproc/README.md), `top/`) |
 | [`models/`](models/) | Reference models: the coprocessor golden model in `models/coproc/` |
-| [`assertions/`](assertions/) | SVA properties, attached to the RTL through `bind` files |
+| [`assertions/`](assertions/) | SVA properties, attached to the RTL through `bind` files; `<block>.f` lists those of a block, compiled through `SIM_FLIST_<block>` |
 | [`regress/`](regress/) | Regression lists |
 
 All outputs (logs, waveforms, coverage) go to `build/`, never into this directory.
@@ -29,6 +29,11 @@ required: it proves that the testbench reached its end.
 Run one with `make sim TB=tb_rv32_id_stage`; the options and the gate-level run are in
 [`scripts/`](../scripts/README.md#simulation).
 
+The testbenches of the interconnect, `unit/bus/`, drive and check it with the verification IP of
+`vendor/axi` (random masters and slaves, the crossbar monitor, `axi_sim_mem`), which they get
+through `SIM_FLIST_bus`; their list is in [`rtl/bus`](../rtl/bus/README.md#verification).
+`unit/top/` holds the integration testbenches: until `soc_top` exists they compile the whole RTL and
+build the part of the SoC they test ([`rtl/top`](../rtl/top/README.md#verification)).
 ## Comparing the core against Spike
 
 `tb_rv32_core_cosim` runs one program from [`sw/tests/`](../sw/README.md) and writes a line per

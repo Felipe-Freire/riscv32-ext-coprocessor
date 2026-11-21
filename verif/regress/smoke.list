@@ -16,6 +16,21 @@ TB=tb_rv32_core
 TB=tb_coproc_pe_array
 TB=tb_coproc_top
 
+# Directed testbenches: DMA
+TB=tb_dma_regs
+TB=tb_dma_addr_gen
+TB=tb_dma_top
+TB=tb_dma_coproc
+
+# Directed testbenches: interconnect
+TB=tb_soc_pkg
+TB=tb_bus_axi_xbar
+TB=tb_bus_obi2axi
+TB=tb_bus_top
+
+# Directed testbenches: SoC integration
+TB=tb_bus_dma_coproc
+
 # UVM: rv32_pc
 UVM=core_pc TEST=core_pc_smoke_test
 UVM=core_pc TEST=core_pc_stress_test

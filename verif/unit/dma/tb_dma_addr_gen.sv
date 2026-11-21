@@ -1,4 +1,5 @@
-
+// Unit testbench for dma_addr_gen: 3D walk, 4 KiB burst split, backpressure and abort.
+// Run: make sim TB=tb_dma_addr_gen
 //`timescale 1ns/1ps
 
 module tb_dma_addr_gen;
@@ -35,9 +36,15 @@ module tb_dma_addr_gen;
   initial clk_i = 1'b0;
   always #5 clk_i = ~clk_i;
 
+  // A handshake that never completes ends the run instead of hanging the regression.
+  initial begin : watchdog
+    #1ms;
+    $fatal(1, "timeout: the test did not finish in 1 ms");
+  end
+
   task automatic check(input string msg, input logic cond);
     if (!cond) begin
-      $display("[FAIL] %s (t=%0t)", msg, $time);
+      $error("%s", msg);
       err_cnt++;
     end else begin
       $display("[PASS] %s", msg);
@@ -133,12 +140,11 @@ module tb_dma_addr_gen;
     @(posedge clk_i);
     check("cmd_valid_o drops immediately after abort", cmd_valid_o == 1'b0);
 
-    $display("========================================");
-    if (err_cnt == 0)
-      $display("TB_DMA_ADDR_GEN: PASSED (0 errors)");
-    else
-      $display("TB_DMA_ADDR_GEN: FAILED (%0d errors)", err_cnt);
-    $display("========================================");
+    if (err_cnt == 0) begin
+      $display("PASS: tb_dma_addr_gen, all checks passed");
+    end else begin
+      $fatal(1, "tb_dma_addr_gen: %0d errors", err_cnt);
+    end
     $finish;
   end
 

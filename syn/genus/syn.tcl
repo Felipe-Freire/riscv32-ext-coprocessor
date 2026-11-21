@@ -88,8 +88,14 @@ if {$clock_gating} {
 
 # ---- RTL and constraints ----------------------------------------------------------------------
 
+# A packed struct port (the bus types of soc_pkg) stays one vector port in the netlist instead of
+# one port per field, so the netlist drops into the testbench of the RTL for gate-level simulation.
+set_db hdl_flatten_complex_port true
+
+# The defines Bender passes to a Genus synthesis: the vendor IP keys its simulation-only code
+# (assertions, interface wrappers Genus cannot parse) on them.
 foreach flist $flists {
-  read_hdl -language sv -f $flist
+  read_hdl -language sv -define {SYNTHESIS TARGET_SYNTHESIS TARGET_GENUS} -f $flist
 }
 elaborate $top
 
