@@ -1,5 +1,10 @@
-# Gate-level regression, on the netlists of `make syn BLOCK=core` and `make syn BLOCK=coproc`
-# (run both first, with the same technology). Run it with `make regress LIST=verif/regress/gls.list`.
+# Gate-level regression, on the netlists of `make syn BLOCK=core CORNER=slow` and
+# `make syn BLOCK=coproc CORNER=slow` (run both first, with the same technology). Run it with
+# `make regress LIST=verif/regress/gls.list`.
+# The SDF runs need the slow corner: at typical, the clock-to-Q of a flop that drives another flop
+# directly (the stages of a synchronizer, the release of a synchronized reset) is shorter than the
+# hold and removal time of the second one. Genus fixes no hold; place and route does, with buffers.
+# Before that, the slow delays check the netlist with every flop's own timing checks.
 # coproc_cdc_test is left out: it runs clk_acc_i up to 4x faster than clk_i, faster than the
 # netlist was synthesized for (ACC_CLK_PERIOD), so with SDF its timing checks fail by design.
 

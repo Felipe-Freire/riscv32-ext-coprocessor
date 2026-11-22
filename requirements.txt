@@ -1,0 +1,12 @@
+# Python packages of the project environment: `make venv` installs them in .venv (Python 3.9 or
+# newer). The scripts of the simulation flow need only the standard library; the packages below
+# are for the tools that do not.
+#
+# OpenRAM: compiler of the SRAM macros (syn/tech/openram45, `make openram`). The numeric libraries
+# it uses are pinned too, so the macros come out the same on every machine. 1.2.48 is the latest
+# release on PyPI: 1.2.50 is yanked, its generic bitcell array is broken on freepdk45 (OpenRAM
+# issue #336).
+openram==1.2.48
+numpy==2.0.2
+scipy==1.13.1
+scikit-learn==1.6.1

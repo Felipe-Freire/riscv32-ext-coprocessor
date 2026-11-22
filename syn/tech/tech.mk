@@ -5,8 +5,9 @@
 #              mflowgen/freepdk-45nm. `make freepdk45` downloads it to lib/freepdk45 (ignored by git,
 #              see syn/tech/freepdk45/freepdk45.mk); FREEPDK45=<dir> points elsewhere. The PDK is
 #              open and cannot be fabricated: area and timing are estimates. CORNER picks the
-#              Liberty corner (typical 1.1 V 25 C, slow 0.95 V 125 C, fast 1.25 V 0 C), and the wires
-#              are estimated from the LEF with the capacitance table of the kit.
+#              Liberty corner (typical 1.1 V 25 C, the default, as the OpenRAM macros; slow 0.95 V
+#              125 C; fast 1.25 V 0 C), and the wires are estimated from the LEF with the
+#              capacitance table of the kit.
 #   gpdk045    Cadence GPDK045 (gsclib045), on standby until the lab memory libraries are checked.
 #              The kit is the first of these directories that holds it:
 #                1. /apps/cds/installs/STRATUS2501/share/stratus/techlibs/GPDK045 (the Stratus install)
@@ -36,6 +37,22 @@ FREEPDK45_LIB_typical := stdcells.lib
 FREEPDK45_LIB_slow    := stdcells-wc.lib
 FREEPDK45_LIB_fast    := stdcells-bc.lib
 
+# ---- OpenRAM SRAM macros of FreePDK45 ----------------------------------------------------------
+# `make openram` (syn/tech/openram45/openram45.mk) generates one macro per configuration in
+# syn/tech/openram45/ into lib/openram45/<macro>/ (ignored by git); OPENRAM45=<dir> points
+# elsewhere. The Liberty files are named the way OpenRAM names its corners,
+# <process>_<supply>V_<temperature>C. Only the typical corner of the cells is characterized
+# (analytical model, see syn/tech/openram45/README.md): the slow and fast runs read it too, until a
+# SPICE characterization gives the macros their own slow and fast files.
+
+OPENRAM45_PATHS          := $(PROJ_ROOT)/lib/openram45
+OPENRAM45                ?= $(firstword $(OPENRAM45_PATHS))
+OPENRAM45_MACROS         := $(basename $(notdir $(wildcard $(PROJ_ROOT)/syn/tech/openram45/*.py)))
+OPENRAM45_CORNERS        := TT_1p1V_25C
+OPENRAM45_CORNER_typical := TT_1p1V_25C
+OPENRAM45_CORNER_slow    := TT_1p1V_25C
+OPENRAM45_CORNER_fast    := TT_1p1V_25C
+
 # ---- GPDK045 (standby) -------------------------------------------------------------------------
 
 GPDK045_PATHS := /apps/cds/installs/STRATUS2501/share/stratus/techlibs/GPDK045 \
@@ -56,7 +73,7 @@ GSC_LEF_hvt     := gsclib045_hvt_macro.lef
 # the kit (empty otherwise), TECH_KIT_CELLS the cell set of a netlist synthesized with it.
 
 ifeq ($(TECH),freepdk45)
-CORNER         ?= slow
+CORNER         ?= typical
 TECH_CORNERS    = $(FREEPDK45_CORNERS)
 TECH_KIT_VAR   := FREEPDK45
 TECH_KIT        = $(call freepdk45_in,$(FREEPDK45))
@@ -76,6 +93,12 @@ endif
 # the port, which then settles at X while the reset is active and never resets the flop. The
 # timing checks do not use those cells, so the models are compiled without them.
 CELL_MODEL_DEFINES := TETRAMAX
+# Views of the OpenRAM macros at CORNER, for the flows that read the memory macros: Liberty for
+# timing and area, LEF for the placement estimate (same layers as the tech LEF), Verilog models for
+# simulation and gate level.
+MEM_LIBS       ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45)/$(m)/$(m)_$(OPENRAM45_CORNER_$(CORNER)).lib)
+MEM_LEFS       ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45)/$(m)/$(m).lef)
+MEM_MODELS     ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45)/$(m)/$(m).v)
 
 else ifeq ($(TECH),gpdk045)
 VT             ?= svt

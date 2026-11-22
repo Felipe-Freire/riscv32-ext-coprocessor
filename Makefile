@@ -32,8 +32,10 @@ SIM_FLIST_top    := $(SIM_FLIST_bus)
 .DEFAULT_GOAL := help
 .PHONY: help clean
 
+include $(PROJ_ROOT)/scripts/venv.mk
 include $(PROJ_ROOT)/syn/tech/tech.mk
 include $(PROJ_ROOT)/syn/tech/freepdk45/freepdk45.mk
+include $(PROJ_ROOT)/syn/tech/openram45/openram45.mk
 include $(PROJ_ROOT)/syn/syn.mk
 include $(PROJ_ROOT)/syn/sta.mk
 include $(PROJ_ROOT)/scripts/sim/xrun/sim.mk
@@ -46,6 +48,7 @@ Synthesis and timing (Genus), see syn/README.md
   syn-list        List the blocks and the modules each one can synthesize
   sta             Static timing of the synthesized TOP at CORNER -> build/sta/<top>/<corner>/
   freepdk45       Download the FreePDK45/NanGate views       -> lib/freepdk45/
+  openram         Generate the SRAM macros with OpenRAM      -> lib/openram45/<macro>/
 
 Simulation (Xcelium), see scripts/README.md
   sim             Run a directed testbench (TB=) or a UVM test (UVM= TEST=)
@@ -54,6 +57,7 @@ Simulation (Xcelium), see scripts/README.md
   sim-list        List the testbenches, the UVM environments and their tests
   regress         Run every line of a regression list, then a PASS/FAIL table
 
+  venv            Python environment with requirements.txt   -> .venv/
   clean           Remove $(BUILD_DIR)
 
 Design and technology (syn, sta, gls)
@@ -64,12 +68,13 @@ Design and technology (syn, sta, gls)
   EFFORT                Synthesis effort: low, medium, high (default: medium)
   CLOCK_GATING          1 inserts clock-gating cells, 0 keeps enable muxes (default: 1)
   TECH                  freepdk45 (FreePDK45 + NanGate cells) or gpdk045 (standby) (default: freepdk45)
-  CORNER                freepdk45: typical, slow, fast (default: slow)
+  CORNER                freepdk45: typical, slow, fast (default: typical)
                         gpdk045: slow_vdd1v0, slow_vdd1v2, fast_vdd1v0, fast_vdd1v2 (default: slow_vdd1v0)
   VT                    gpdk045 threshold flavour: svt, lvt, hvt (default: svt)
   RC_CORNER             gpdk045 wire estimation rules: rcworst, typical, rcbest (default: rcworst)
   FREEPDK45, GPDK045    Kit directory (default: lib/freepdk45; the GPDK045 search of syn/tech/tech.mk)
   LIBS= LEFS=           Empty: Genus tutorial library, no physical data
+  MACROS, OPENRAM45     OpenRAM macros to generate (default: $(OPENRAM45_MACROS)) and their directory
   In use here: $(strip $(TECH_NAME))
 
 Simulation
@@ -90,7 +95,7 @@ Simulation
 Examples
   make syn BLOCK=coproc CLK_PERIOD=5 ACC_CLK_PERIOD=2.5
   make syn BLOCK=core TOP=rv32_alu
-  make sta BLOCK=core CORNER=typical
+  make sta BLOCK=core CORNER=slow
   make syn BLOCK=core TECH=gpdk045
   make sim TB=tb_rv32_core
   make sim UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=10

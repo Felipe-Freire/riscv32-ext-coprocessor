@@ -127,8 +127,8 @@ constraint is met, so the slack ends near zero at both periods; 5 ns costs 4% mo
 
 `make sta BLOCK=bus` gives the same slack. Area at 10 ns: data crossbar 10 535, control crossbar
 3 606, core bridge 605, demux 395, OBI → AXI4-Lite bridge 167. No latches. On FreePDK45, the
-default technology now, 10 ns closes with +0.278 ns, 14 768 of area and the same 900 flip-flops
-([`syn/`](../../syn/README.md#results)).
+default technology now, 10 ns closes with +2.569 ns at `typical` (+0.278 ns at `slow`), 14 814 of
+area and the same 900 flip-flops ([`syn/`](../../syn/README.md#results)).
 
 ### Latency mode of the data crossbar
 

@@ -7,13 +7,20 @@ Tool wrappers and helper utilities. Day-to-day use goes through the top-level
 
 | Path | Contents |
 |---|---|
-| [`setup.sh`](setup.sh) | Environment setup: `source scripts/setup.sh` exports `PROJ_ROOT` |
+| [`setup.sh`](setup.sh) | Environment setup: `source scripts/setup.sh` exports `PROJ_ROOT` and activates `.venv` |
+| [`venv.mk`](venv.mk) | `make venv`: the Python environment of the project, `.venv` (git-ignored), with the packages of [`requirements.txt`](../requirements.txt) |
 | [`sim/xrun/`](sim/xrun/) | Xcelium flow: `sim.mk` (`make sim`, `gls`, `sim-list`, `regress`) and `waves.tcl` |
 | [`sim/check_sim.py`](sim/check_sim.py) | PASS/FAIL of one run: exit status and `*E`/`*F` messages (`$error`, `$fatal`, assertions), then the end marker (`PASS` line or UVM summary) |
 | [`sim/regress.py`](sim/regress.py) | Runs the lines of a [regression list](../verif/regress/) and prints a PASS/FAIL table |
 | [`utils/`](utils/) | Helpers: ELF→hex conversion, generators, log and coverage report parsers |
 
 Synthesis and STA scripts live with their constraints in [`syn/`](../syn/README.md).
+
+Every Python tool of the flows runs on the interpreter of `.venv` once `make venv` has built it, and
+on the `python3` of `PATH` before that. The simulation scripts need only the standard library, so
+they run either way; the tools of `requirements.txt` (OpenRAM, for `make openram`) need the venv,
+and their targets build it first. Edit `requirements.txt` to add a package: the next run rebuilds
+the venv.
 
 ## Simulation
 
@@ -32,7 +39,10 @@ RTL file lists come from the block table in the [`Makefile`](../Makefile), vendo
 gate level the RTL is replaced by the netlist of `make syn`, the block's packages and interfaces
 (`*_pkg.sv`, `*_intf.sv`) and the cell models of the technology (`TECH`), compiled with its
 `CELL_MODEL_DEFINES` (`TETRAMAX` for the NanGate cells of FreePDK45: without it their models drive
-the reset pin of the flops back and hold it at X; see [`syn/tech/tech.mk`](../syn/tech/tech.mk)). A block can also have testbench-only file lists,
+the reset pin of the flops back and hold it at X; see [`syn/tech/tech.mk`](../syn/tech/tech.mk)).
+With `SDF=1`, synthesize at `CORNER=slow`: no hold is fixed before place and route, and at
+`typical` a flop that drives another one directly (synchronizer stages, reset release) breaks its
+hold or removal time ([`gls.list`](../verif/regress/gls.list)). A block can also have testbench-only file lists,
 `SIM_FLIST_<block>` in the same table (verification IP such as `vendor/axi_sim.f`, or the RTL of
 another block a testbench runs against). They are compiled after the design and before the
 testbench, at RTL and gate level, and synthesis never reads them. `make help` lists every variable.

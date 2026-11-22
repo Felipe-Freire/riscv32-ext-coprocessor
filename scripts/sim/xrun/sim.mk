@@ -107,7 +107,7 @@ ifeq ($(SDF),1)
 endif
 endif
 	cd $(SIM_RUN_DIR) && { $(XRUN) $(SIM_ARGS); \
-	  python3 $(PROJ_ROOT)/scripts/sim/check_sim.py xrun.log $$? $(notdir $(SIM_RUN_DIR)) \
+	  $(PYTHON) $(PROJ_ROOT)/scripts/sim/check_sim.py xrun.log $$? $(notdir $(SIM_RUN_DIR)) \
 	    $(if $(strip $(UVM)),--uvm); }
 
 gls:
@@ -123,4 +123,4 @@ sim-list:
 	@echo "Regression lists (LIST=):" $(patsubst $(PROJ_ROOT)/%,%,$(wildcard $(PROJ_ROOT)/verif/regress/*.list))
 
 regress:
-	@python3 $(PROJ_ROOT)/scripts/sim/regress.py --jobs $(JOBS) --out $(BUILD_DIR)/regress $(LIST)
+	@$(PYTHON) $(PROJ_ROOT)/scripts/sim/regress.py --jobs $(JOBS) --out $(BUILD_DIR)/regress $(LIST)
