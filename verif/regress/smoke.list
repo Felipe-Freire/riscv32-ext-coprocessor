@@ -1,6 +1,9 @@
 # Smoke regression: every directed testbench and every UVM test once, with a fixed seed.
 # Run it with `make regress` (this is the default list).
 
+# Directed testbenches: technology primitives
+TB=tb_prim_ram_1p
+
 # Directed testbenches: core
 TB=tb_rv32_alu
 TB=tb_rv32_branch_cond

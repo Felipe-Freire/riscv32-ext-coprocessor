@@ -8,7 +8,10 @@ BUILD_DIR ?= $(PROJ_ROOT)/build
 # gate-level simulation pick one with BLOCK=<name>; simulation finds it from the testbench.
 # SIM_FLIST_<block>: file lists only the testbenches of the block compile, after its RTL (verification
 # IP, or the RTL of another block a testbench runs against). Synthesis never reads them.
-BLOCKS           := core coproc dma bus
+BLOCKS           := prim core coproc dma bus
+# Technology primitives (SRAM wrappers): the generic versions, for simulation.
+RTL_FLIST_prim   := $(PROJ_ROOT)/rtl/prim/prim.f
+RTL_TOP_prim     := prim_ram_1p
 RTL_FLIST_core   := $(PROJ_ROOT)/rtl/core/core.f
 RTL_TOP_core     := rv32_core
 RTL_FLIST_coproc := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/rtl/coproc/coproc.f

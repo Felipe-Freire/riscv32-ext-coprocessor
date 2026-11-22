@@ -13,7 +13,7 @@ and ports, and [`top/`](top/README.md) holds the memory map and the interfaces b
 | Directory | Contents | Module prefix | Specification |
 |---|---|---|---|
 | [`common/`](common/) | Project-wide packages: memory map, shared types | `<name>_pkg` | — |
-| [`prim/`](prim/) | Technology primitives (SRAM and ROM macros, clock gating, synchronizers, async FIFOs) | `prim_` | — |
+| [`prim/`](prim/README.md) | Technology primitives (SRAM and ROM macros, clock gating, synchronizers, async FIFOs) | `prim_` | Contract of each primitive |
 | [`core/`](core/README.md) | RV32 core: `rv32_pkg`, units (ALU, decoder, register file, ...) in `units/`, pipeline stages in `stage/` | `rv32_` | Instructions, CSRs, traps, ports |
 | [`coproc/`](coproc/README.md) | Systolic-array coprocessor: PE array, skew and drain, tile sequencer, registers, CDC | `coproc_` | Operation, matrix layout, registers, ports |
 | [`dma/`](dma/README.md) | DMA: registers, 3D address generators, AXI4 burst engine, stream ports | `dma_` | Channels, registers, ports |

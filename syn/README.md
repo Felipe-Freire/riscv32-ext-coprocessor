@@ -30,7 +30,7 @@ make syn BLOCK=core TECH=gpdk045                # the same block on the GPDK045 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `BLOCK` | `core` | `core`, `coproc`, `dma` or `bus`: selects the file lists and the default top |
+| `BLOCK` | `core` | `prim`, `core`, `coproc`, `dma` or `bus`: selects the file lists and the default top |
 | `TOP` | Block top | Any module of the block's file lists |
 | `CLK_PERIOD`, `ACC_CLK_PERIOD` | `10`, `CLK_PERIOD` | `clk_i` and `clk_acc_i` periods in ns |
 | `TECH` | `freepdk45` | `freepdk45` or `gpdk045` |
