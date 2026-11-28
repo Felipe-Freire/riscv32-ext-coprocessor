@@ -18,13 +18,15 @@ and ports, and [`top/`](top/README.md) holds the memory map and the interfaces b
 | [`coproc/`](coproc/README.md) | Systolic-array coprocessor: PE array, skew and drain, tile sequencer, registers, CDC | `coproc_` | Operation, matrix layout, registers, ports |
 | [`dma/`](dma/README.md) | DMA: registers, 3D address generators, AXI4 burst engine, stream ports | `dma_` | Channels, registers, ports |
 | [`bus/`](bus/README.md) | Interconnect `bus_top`: core data-port demux, OBI → AXI4 and OBI → AXI4-Lite bridges, AXI4 2×2 data crossbar, AXI4-Lite 1×3 control crossbar | `bus_` | Address decode, errors, latency, timing; SoC view in [`top/`](top/README.md#interfaces-between-blocks) |
-| [`mem/`](mem/) | Memories built from `prim_` macros: TCMs, L2 banks, boot ROM | `mem_` | In [`top/`](top/README.md#memory-map) |
+| [`mem/`](mem/README.md) | Memories built from `prim_` macros: TCMs (`mem_tcm`), L2 banks (`mem_l2_bank`); the boot ROM comes with the top | `mem_` | Protocol, latency, bandwidth, area; addresses in [`top/`](top/README.md#memory-map) |
 | [`periph/`](periph/README.md) | Timer | `periph_` | Registers |
 | [`top/`](top/README.md) | SoC top: block integration, reset synchronizers | `soc_` | Memory map, interrupts, clocks, interfaces |
 
 Each directory has a file list `<dir>/<dir>.f`. [`rtl.f`](rtl.f) is the master file list: it
 includes the block lists in compile order (`common` and `prim` first, because the other blocks
-use them). Paths inside file lists are written as `${PROJ_ROOT}/rtl/...`.
+use them). Paths inside file lists are written as `${PROJ_ROOT}/rtl/...`; the primitives come in
+as `${PRIM_FLIST}`, the list of the memory technology the Makefile picks (`MEM_TECH`,
+[`prim/`](prim/README.md)).
 
 ## Technology independence
 
@@ -32,9 +34,10 @@ The target is an ASIC and the PDK is not chosen yet, so `rtl/` stays technology-
 
 - Anything that maps to a specific cell or macro (SRAM, ROM, clock-gating cell, clock mux,
   synchronizer, pad) is instantiated only through a `prim_` module. `prim/` holds a generic
-  behavioral version of each one, used for simulation. The technology version keeps the
-  same module name and ports, and replaces it through the synthesis file list (see
-  [`syn/`](../syn/README.md)).
+  behavioral version of each one, used for simulation. The technology version (the OpenRAM
+  macros of FreePDK45 in `prim/openram45/`) keeps the same module name and ports, and replaces it
+  through the primitive file list: `MEM_TECH` picks it, synthesis takes the technology's by
+  default (see [`prim/`](prim/README.md) and [`syn/`](../syn/README.md)).
 - SRAMs and ROMs are never inferred from arrays: instantiate the `prim_` macro wrapper. Small
   storage built from flip-flops (register file, FIFOs) is written as plain arrays.
 - No FPGA primitives, vendor attributes or memory-initialization idioms.

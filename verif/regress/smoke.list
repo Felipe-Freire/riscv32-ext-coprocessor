@@ -1,8 +1,15 @@
 # Smoke regression: every directed testbench and every UVM test once, with a fixed seed.
 # Run it with `make regress` (this is the default list).
 
-# Directed testbenches: technology primitives
+# Directed testbenches: technology primitives, generic and on the OpenRAM macros
 TB=tb_prim_ram_1p
+TB=tb_prim_ram_1p MEM_TECH=openram45
+
+# Directed testbenches: memories (TCMs, L2 bank), generic and on the OpenRAM macros
+TB=tb_mem_tcm
+TB=tb_mem_tcm MEM_TECH=openram45
+TB=tb_mem_l2_bank
+TB=tb_mem_l2_bank MEM_TECH=openram45
 
 # Directed testbenches: core
 TB=tb_rv32_alu

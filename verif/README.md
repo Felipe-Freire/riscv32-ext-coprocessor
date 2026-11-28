@@ -35,6 +35,11 @@ through `SIM_FLIST_bus`; their list is in [`rtl/bus`](../rtl/bus/README.md#verif
 `unit/top/` holds the integration testbenches: until `soc_top` exists they compile the whole RTL and
 build the part of the SoC they test ([`rtl/top`](../rtl/top/README.md#verification)).
 
+The testbenches of the primitives and memories, `unit/prim/` and `unit/mem/`, run on whichever
+memory primitives `MEM_TECH` compiles: the generic models by default, the OpenRAM macros with
+`make sim TB=tb_mem_tcm MEM_TECH=openram45`. The smoke list runs each one both ways
+([`rtl/prim`](../rtl/prim/README.md#verification), [`rtl/mem`](../rtl/mem/README.md#verification)).
+
 ## UVM environments
 
 Each `uvm/<block>/` has `tb/`, `env/`, `seq/` and `tests/`. Classes go one per file (`.svh`),

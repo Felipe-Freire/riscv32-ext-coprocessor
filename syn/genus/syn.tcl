@@ -164,6 +164,13 @@ if {[llength [get_ports -quiet clk_acc_i]] > 0} {
   append clocks ", clk_acc_i $acc_period ns"
 }
 
+# Memory macros (the OpenRAM SRAMs): their count and the part of the cell area they take.
+set macros     [get_db insts -if {.base_cell.is_memory}]
+set macro_area 0.0
+foreach inst $macros {
+  set macro_area [expr {$macro_area + [get_db $inst .area]}]
+}
+
 # An integrated clock-gating cell holds a latch; count those apart from the latches of the RTL.
 set clock_gates 0
 set latches     0
@@ -185,6 +192,7 @@ set summary [join [list \
   [format "%-14s %s" "Clock gating" [expr {$clock_gating ? "on, $clock_gates cells" : "off"}]] \
   [format "%-14s %s" "Worst slack"  $slack] \
   [format "%-14s %.1f" "Cell area"  [get_db current_design .area]] \
+  [format "%-14s %d, %.1f of the cell area" "Memory macros" [llength $macros] $macro_area] \
   [format "%-14s %d" "Cells"        [llength [get_db insts]]] \
   [format "%-14s %d" "Flip-flops"   [llength [get_db insts -if {.is_flop}]]] \
   [format "%-14s %d" "Latches"      $latches] \

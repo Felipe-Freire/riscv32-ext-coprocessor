@@ -10,8 +10,12 @@ STA_RUN_DIR  = $(BUILD_DIR)/sta/$(TOP)/$(TECH_CORNER)
 
 .PHONY: sta
 
+# The memories of the synthesis: the same default as make syn (syn/tech/tech.mk).
+sta: MEM_TECH_FLOW = $(MEM_TECH_IMPL)
+
 sta:
 	$(TECH_CHECK)
+	$(MEM_CHECK)
 	@test -r "$(STA_NETLIST)" || { echo "[sta] No netlist $(STA_NETLIST):" \
 	  "run make syn BLOCK=$(BLOCK) TOP=$(TOP) first" >&2; exit 1; }
 ifeq ($(origin STA_NETLIST),file)
@@ -21,8 +25,8 @@ endif
 	cd $(STA_RUN_DIR) && \
 	  STA_TOP=$(TOP) STA_NETLIST=$(abspath $(STA_NETLIST)) STA_SDC=$(abspath $(STA_SDC)) \
 	  STA_CORNER=$(TECH_CORNER) \
-	  SYN_LIBS="$(abspath $(LIBS))" SYN_LEFS="$(abspath $(LEFS))" SYN_QRC="$(abspath $(QRC))" \
-	  SYN_CAPTBL="$(abspath $(CAPTBL))" \
+	  SYN_LIBS="$(abspath $(LIBS) $(MEM_TECH_LIBS))" SYN_LEFS="$(abspath $(LEFS) $(MEM_TECH_LEFS))" \
+	  SYN_QRC="$(abspath $(QRC))" SYN_CAPTBL="$(abspath $(CAPTBL))" \
 	  $(GENUS) -batch -no_gui -abort_on_error -overwrite -log genus \
 	    -files $(PROJ_ROOT)/syn/genus/sta.tcl
 	@echo "[sta] Reports in $(STA_RUN_DIR)/reports"

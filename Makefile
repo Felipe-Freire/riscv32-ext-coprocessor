@@ -8,9 +8,11 @@ BUILD_DIR ?= $(PROJ_ROOT)/build
 # gate-level simulation pick one with BLOCK=<name>; simulation finds it from the testbench.
 # SIM_FLIST_<block>: file lists only the testbenches of the block compile, after its RTL (verification
 # IP, or the RTL of another block a testbench runs against). Synthesis never reads them.
-BLOCKS           := prim core coproc dma bus
-# Technology primitives (SRAM wrappers): the generic versions, for simulation.
-RTL_FLIST_prim   := $(PROJ_ROOT)/rtl/prim/prim.f
+BLOCKS           := prim core coproc dma bus mem
+# Technology primitives (SRAM wrappers), in the version of MEM_TECH (PRIM_FLIST, syn/tech/tech.mk):
+# generic for RTL simulation, the OpenRAM macros for synthesis. The lists that hold them are
+# expanded late (=), so each flow gets its own.
+RTL_FLIST_prim    = $(PRIM_FLIST)
 RTL_TOP_prim     := prim_ram_1p
 RTL_FLIST_core   := $(PROJ_ROOT)/rtl/core/core.f
 RTL_TOP_core     := rv32_core
@@ -25,6 +27,11 @@ RTL_FLIST_bus    := $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/vendor/axi.f
 RTL_TOP_bus      := bus_top
 SIM_FLIST_bus    := $(PROJ_ROOT)/vendor/common_verification.f $(PROJ_ROOT)/vendor/axi_sim.f \
                     $(PROJ_ROOT)/verif/assertions/bus.f
+# Memories of the SoC (TCMs, L2 banks) on the primitives of MEM_TECH.
+RTL_FLIST_mem     = $(PROJ_ROOT)/vendor/common_cells.f $(PROJ_ROOT)/vendor/axi.f \
+                    $(PROJ_ROOT)/rtl/common/common.f $(PRIM_FLIST) $(PROJ_ROOT)/rtl/mem/mem.f
+RTL_TOP_mem      := mem_tcm
+SIM_FLIST_mem    := $(PROJ_ROOT)/vendor/common_verification.f $(PROJ_ROOT)/vendor/axi_sim.f
 # top joins BLOCKS when its top, soc_top, exists; until then its testbenches compile the whole RTL.
 RTL_FLIST_top    := $(PROJ_ROOT)/rtl/rtl.f
 SIM_FLIST_top    := $(SIM_FLIST_bus)
@@ -78,6 +85,8 @@ Design and technology (syn, sta, gls)
   FREEPDK45, GPDK045    Kit directory (default: lib/freepdk45; the GPDK045 search of syn/tech/tech.mk)
   LIBS= LEFS=           Empty: Genus tutorial library, no physical data
   MACROS, OPENRAM45     OpenRAM macros to generate (default: $(OPENRAM45_MACROS)) and their directory
+  MEM_TECH              Memory primitives: generic (flip-flop arrays) or openram45 (OpenRAM macros)
+                        (default: generic for sim, the technology's for syn, sta and gls: $(MEM_TECH_IMPL))
   In use here: $(strip $(TECH_NAME))
 
 Simulation
@@ -101,6 +110,8 @@ Examples
   make sta BLOCK=core CORNER=slow
   make syn BLOCK=core TECH=gpdk045
   make sim TB=tb_rv32_core
+  make sim TB=tb_mem_tcm MEM_TECH=openram45
+  make syn BLOCK=mem TOP=mem_l2_bank
   make sim UVM=coproc TEST=coproc_matmul_rand_test SEED=random PLUSARGS=+JOBS=10
   make gls TB=tb_rv32_core SDF=1
   make regress LIST=verif/regress/smoke.list JOBS=4

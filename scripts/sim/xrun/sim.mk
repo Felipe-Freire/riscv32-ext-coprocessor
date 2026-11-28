@@ -50,18 +50,21 @@ GLS_NETLIST = $(BUILD_DIR)/syn/$(GLS_TOP)/outputs/$(GLS_TOP).v
 SDF_FILE   ?= $(BUILD_DIR)/syn/$(GLS_TOP)/outputs/$(GLS_TOP).sdf
 SDF_SCOPE  ?= $(SIM_TOP).dut
 
-SIM_RUN_DIR = $(BUILD_DIR)/sim/$(SIM_NAME)$(if $(filter 1,$(GLS)),_gls$(if $(filter 1,$(SDF)),_sdf))
+SIM_RUN_DIR = $(BUILD_DIR)/sim/$(SIM_NAME)$(if $(MEM_TECH),_$(MEM_TECH))$(if $(filter 1,$(GLS)),_gls$(if $(filter 1,$(SDF)),_sdf))
 
 # ---- xrun command line --------------------------------------------------------------------------
 
 ifeq ($(GLS),1)
 # Packages, interfaces and include directories of the block (the testbenches use them), the
-# netlist, and the cell models as a library: zero delay, or the SDF delays with timing checks.
-SIM_DESIGN = -f gls_pkgs.f $(GLS_NETLIST) -v $(abspath $(TECH_MODELS)) -define GLS \
+# netlist, and the models of the cells and of the memory macros as libraries: zero delay, or the
+# SDF delays with timing checks.
+SIM_DESIGN = -f gls_pkgs.f $(GLS_NETLIST) \
+             $(foreach m,$(TECH_MODELS) $(MEM_TECH_MODELS),-v $(abspath $(m))) -define GLS \
              $(foreach d,$(if $(TECH_TUTORIAL),,$(CELL_MODEL_DEFINES)),-define $(d)) \
              $(if $(filter 1,$(SDF)),-sdf_cmd_file sdf.cmd -neg_tchk,-nospecify -notimingchecks)
 else
-SIM_DESIGN = $(foreach f,$(RTL_FLIST_$(SIM_BLOCK)),-f $(f))
+# The RTL, with the primitives of MEM_TECH, and the models of its macros as a library.
+SIM_DESIGN = $(foreach f,$(RTL_FLIST_$(SIM_BLOCK)),-f $(f)) $(foreach m,$(MEM_TECH_MODELS),-v $(m))
 endif
 
 SIM_FLISTS = $(foreach f,$(SIM_FLIST_$(SIM_BLOCK)),-f $(f))
@@ -78,6 +81,10 @@ SIM_ARGS = -64bit -sv -timescale 1ns/1ps -licqueue -l xrun.log -svseed $(SEED) \
 
 .PHONY: sim gls sim-list regress
 
+# The memory primitives (syn/tech/tech.mk): generic at RTL unless MEM_TECH says otherwise, those of
+# the synthesis at gate level, so the netlist finds the models of its macros.
+sim: MEM_TECH_FLOW = $(if $(filter 1,$(GLS)),$(MEM_TECH_IMPL),generic)
+
 sim:
 	@test -n "$(strip $(TB)$(UVM))" || \
 	  { echo "[sim] Choose TB=<testbench> or UVM=<env> TEST=<test> (see make sim-list)" >&2; exit 1; }
@@ -89,6 +96,7 @@ sim:
 	  { echo "[sim] UVM=$(UVM) needs TEST=<test> (see make sim-list)" >&2; exit 1; }
 	@test -n "$(RTL_FLIST_$(SIM_BLOCK))" || \
 	  { echo "[sim] Block '$(SIM_BLOCK)' of $(TB)$(UVM) is not in the Makefile block table" >&2; exit 1; }
+	$(MEM_CHECK)
 ifeq ($(GLS),1)
 	@test -r "$(GLS_NETLIST)" || { echo "[sim] No netlist $(GLS_NETLIST):" \
 	  "run make syn BLOCK=$(SIM_BLOCK) TOP=$(GLS_TOP) first" >&2; exit 1; }

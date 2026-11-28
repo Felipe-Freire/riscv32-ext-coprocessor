@@ -70,13 +70,19 @@ module prim_ram_1p #(
     $fatal(1, "prim_ram_1p: Depth is 0");
   end
 
-  known_req : assert property (@(posedge clk_i) !$isunknown(req_i))
+  // From the second edge on: a clock that starts at 1 has an edge at time 0 (X to 1), before the
+  // logic in front of the RAM drives anything.
+  logic armed = 1'b0;
+
+  always @(posedge clk_i) armed <= 1'b1;
+
+  known_req : assert property (@(posedge clk_i) armed |-> !$isunknown(req_i))
     else $error("prim_ram_1p %m: req_i is X");
-  known_cmd : assert property (@(posedge clk_i) req_i |-> !$isunknown({we_i, addr_i}))
+  known_cmd : assert property (@(posedge clk_i) armed && req_i |-> !$isunknown({we_i, addr_i}))
     else $error("prim_ram_1p %m: we_i or addr_i is X during an access");
-  known_be  : assert property (@(posedge clk_i) req_i && we_i |-> !$isunknown(be_i))
+  known_be  : assert property (@(posedge clk_i) armed && req_i && we_i |-> !$isunknown(be_i))
     else $error("prim_ram_1p %m: be_i is X during a write");
-  in_range  : assert property (@(posedge clk_i) req_i |-> addr_i < Depth)
+  in_range  : assert property (@(posedge clk_i) armed && req_i |-> addr_i < Depth)
     else $error("prim_ram_1p %m: address %0d past the last word %0d", addr_i, Depth - 1);
 `else
   assign rdata_o = rdata_q;

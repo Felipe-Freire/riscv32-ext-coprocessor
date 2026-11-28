@@ -35,3 +35,8 @@ TB=tb_bus_top SEED=random PLUSARGS=+OPS=20000
 TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=8
 TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=8
 TB=tb_bus_dma_coproc SEED=random PLUSARGS=+RAND=8
+
+# Memories on the OpenRAM macros: random accesses with new seeds
+TB=tb_prim_ram_1p SEED=random MEM_TECH=openram45 PLUSARGS=+OPS=100000
+TB=tb_mem_tcm SEED=random MEM_TECH=openram45 PLUSARGS=+OPS=100000
+TB=tb_mem_l2_bank SEED=random MEM_TECH=openram45 PLUSARGS=+TXNS=10000

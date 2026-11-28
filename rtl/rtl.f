@@ -4,7 +4,9 @@
 -f ${PROJ_ROOT}/vendor/common_cells.f
 -f ${PROJ_ROOT}/vendor/axi.f
 -f ${PROJ_ROOT}/rtl/common/common.f
--f ${PROJ_ROOT}/rtl/prim/prim.f
+// The primitives of MEM_TECH: the Makefile exports PRIM_FLIST (rtl/prim/prim.f or
+// rtl/prim/<tech>/prim.f).
+-f ${PRIM_FLIST}
 -f ${PROJ_ROOT}/rtl/core/core.f
 -f ${PROJ_ROOT}/rtl/coproc/coproc.f
 -f ${PROJ_ROOT}/rtl/dma/dma.f

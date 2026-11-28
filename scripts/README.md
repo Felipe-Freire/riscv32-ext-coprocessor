@@ -30,6 +30,7 @@ needs root.
 make sim-list                                         # testbenches, UVM tests, regression lists
 make sim TB=tb_rv32_core                              # directed: verif/unit/<block>/<TB>.sv
 make sim UVM=coproc TEST=coproc_matmul_rand_test SEED=random WAVES=1
+make sim TB=tb_mem_l2_bank MEM_TECH=openram45         # on the OpenRAM macro models
 make gls TB=tb_rv32_core SDF=1                        # gate level, after make syn BLOCK=core
 make regress LIST=verif/regress/smoke.list JOBS=4
 ```
@@ -37,9 +38,13 @@ make regress LIST=verif/regress/smoke.list JOBS=4
 Each run compiles and simulates in `build/sim/<run>/` (`xrun.log`, `waves.shm`) and ends with a
 `[sim] PASS` or `[sim] FAIL` line and the matching exit status. The block of a testbench is its
 directory under `verif/unit/`, or the first word of the UVM environment (`core_pc` → `core`); its
-RTL file lists come from the block table in the [`Makefile`](../Makefile), vendor IP included. At
+RTL file lists come from the block table in the [`Makefile`](../Makefile), vendor IP included.
+The memory primitives are the generic models unless `MEM_TECH=openram45` asks for the OpenRAM
+macros, whose Verilog models then come in as a library (`-v`); a run with `MEM_TECH` set gets its
+own directory, `build/sim/<run>_<mem_tech>/` ([`rtl/prim`](../rtl/prim/README.md#memory-technology-mem_tech)). At
 gate level the RTL is replaced by the netlist of `make syn`, the block's packages and interfaces
-(`*_pkg.sv`, `*_intf.sv`) and the cell models of the technology (`TECH`), compiled with its
+(`*_pkg.sv`, `*_intf.sv`) and the models of the cells of the technology (`TECH`) and of the memory
+macros of the synthesis, the cells compiled with their
 `CELL_MODEL_DEFINES` (`TETRAMAX` for the NanGate cells of FreePDK45: without it their models drive
 the reset pin of the flops back and hold it at X; see [`syn/tech/tech.mk`](../syn/tech/tech.mk)).
 With `SDF=1`, synthesize at `CORNER=slow`: no hold is fixed before place and route, and at

@@ -32,11 +32,12 @@ make syn BLOCK=core TECH=gpdk045                # the same block on the GPDK045 
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `BLOCK` | `core` | `prim`, `core`, `coproc`, `dma` or `bus`: selects the file lists and the default top |
+| `BLOCK` | `core` | `prim`, `core`, `coproc`, `dma`, `bus` or `mem`: selects the file lists and the default top |
 | `TOP` | Block top | Any module of the block's file lists |
 | `CLK_PERIOD`, `ACC_CLK_PERIOD` | `10`, `CLK_PERIOD` | `clk_i` and `clk_acc_i` periods in ns |
 | `TECH` | `freepdk45` | `freepdk45` or `gpdk045` |
 | `CORNER` | `typical` | Liberty corner. FreePDK45: `typical` (1.1 V, 25 °C, the corner of the analytical timing of the OpenRAM macros), `slow` (0.95 V, 125 °C), `fast` (1.25 V, 0 °C). GPDK045: `slow_vdd1v0` (default there), `slow_vdd1v2`, `fast_vdd1v0`, `fast_vdd1v2` |
+| `MEM_TECH` | The technology's | Memory primitives ([`rtl/prim`](../rtl/prim/README.md#memory-technology-mem_tech)): `openram45`, the OpenRAM macros, with FreePDK45; `generic`, flip-flop arrays, with GPDK045 or the tutorial library. With `openram45` the macro Liberty and LEF files join those of the cells |
 | `VT`, `RC_CORNER` | `svt`, `rcworst` | GPDK045 only: threshold flavour and wire estimation rules |
 | `LIBS`, `LEFS` | The kit's | Liberty and LEF files; empty selects the tutorial library |
 | `CLOCK_GATING` | `1` | Clock-gating cells where the library has them |
@@ -62,7 +63,12 @@ the same tops synthesized at FreePDK45 `slow` (0.95 V, 125 °C) and at GPDK045 `
 | `rv32_core` | +2.786 ns | 21 042 | 5 424 | 1 639 | 45 | +0.430 ns, 21 540 | +0.010 ns, 26 951 |
 | `coproc_top` | +3.381 ns | 97 839 | 24 885 | 6 316 | 52 | +1.929 ns, 109 938 | +1.144 ns, 130 439 |
 | `bus_top` | +2.569 ns | 14 814 | 4 283 | 900 | 59 | +0.278 ns, 14 768 | +0.025 ns, 17 135 |
+| `mem_tcm` | +0.990 ns | 374 376 | 281 | 4 | 0 | +0.646 ns, 374 376 | — |
+| `mem_l2_bank` | +1.024 ns | 379 176 | 1 451 | 424 | 15 | +0.004 ns, 379 258 | — |
 
+The two memories (`BLOCK=mem`, [`rtl/mem`](../rtl/mem/README.md#synthesis)) are on the OpenRAM
+macros, 4 each: 373 596 µm² of their area, and the cells count them. Their macros keep the
+analytical TT timing at `slow` too, and GPDK045 has no memories to compare with.
 `make sta` gives the same slack as the synthesis. `check_design` has no unresolved references,
 undriven or multidriven ports, and every cell has its LEF. The gate-level regression
 ([`gls.list`](../verif/regress/gls.list)) runs on the `slow` netlists, with and without SDF: no hold

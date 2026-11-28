@@ -22,22 +22,28 @@ endef
 
 .PHONY: syn syn-list
 
+# The memories of the technology unless MEM_TECH says otherwise (syn/tech/tech.mk): their macro
+# Liberty and LEF files join the ones of the cells.
+syn: MEM_TECH_FLOW = $(MEM_TECH_IMPL)
+
 syn:
 	$(BLOCK_CHECK)
 	$(TECH_CHECK)
+	$(MEM_CHECK)
 	@mkdir -p $(SYN_RUN_DIR)
 	cd $(SYN_RUN_DIR) && \
 	  SYN_TOP=$(TOP) SYN_FLIST="$(RTL_FLIST_$(BLOCK))" SYN_SDC=$(SYN_SDC) \
 	  SYN_CLK_PERIOD=$(CLK_PERIOD) SYN_ACC_CLK_PERIOD=$(ACC_CLK_PERIOD) \
 	  SYN_EFFORT=$(EFFORT) SYN_CLOCK_GATING=$(CLOCK_GATING) \
-	  SYN_LIBS="$(abspath $(LIBS))" SYN_LEFS="$(abspath $(LEFS))" SYN_QRC="$(abspath $(QRC))" \
-	  SYN_CAPTBL="$(abspath $(CAPTBL))" \
+	  SYN_LIBS="$(abspath $(LIBS) $(MEM_TECH_LIBS))" SYN_LEFS="$(abspath $(LEFS) $(MEM_TECH_LEFS))" \
+	  SYN_QRC="$(abspath $(QRC))" SYN_CAPTBL="$(abspath $(CAPTBL))" \
 	  $(GENUS) -batch -no_gui -abort_on_error -overwrite -log genus \
 	    -files $(PROJ_ROOT)/syn/genus/syn.tcl
 	@echo "$(TECH_CELLS)" > $(SYN_RUN_DIR)/outputs/cells
 	@echo "[syn] Reports in $(SYN_RUN_DIR)/reports"
 
 # Lists each block with the modules of its own RTL (vendor IP left out), any of which can be TOP.
+syn-list: MEM_TECH_FLOW = $(MEM_TECH_IMPL)
 syn-list:
 	@$(foreach b,$(BLOCKS),echo "BLOCK=$(b) (default TOP=$(RTL_TOP_$(b))):"; \
 	  sed -n 's|^\s*$${PROJ_ROOT}/rtl/|$(PROJ_ROOT)/rtl/|p' $(RTL_FLIST_$(b)) | \

@@ -141,20 +141,52 @@ TECH_NAME     = $(if $(TECH_TUTORIAL),Genus tutorial library$(if $(TECH_KIT),, \
                   (no $(TECH) kit in $(or $($(TECH_KIT_VAR)),$($(TECH_KIT_VAR)_PATHS)): $(TECH_KIT_HINT))), \
                   $(if $(filter file,$(origin LIBS)),$(TECH_KIT_NAME),$(LIBS)))
 TECH_CORNER   = $(if $(TECH_TUTORIAL),tutorial,$(CORNER))
-# Cell set of a netlist: make syn writes it next to the netlist, sta and gls compare it.
-TECH_CELLS    = $(if $(TECH_TUTORIAL),tutorial,$(if $(filter file,$(origin LIBS)),$(TECH_KIT_CELLS),$(notdir $(LIBS))))
 TECH_MODELS   = $(if $(TECH_TUTORIAL),$(TUTORIAL_CELLS),$(CELL_MODELS))
+
+# ---- Memory technology -------------------------------------------------------------------------
+# MEM_TECH picks the version of the technology primitives (rtl/prim, see rtl/prim/README.md):
+#   generic    the behavioral models of rtl/prim/prim.f: flip-flop arrays, for simulation only
+#   openram45  rtl/prim/openram45/prim.f, built from the OpenRAM macros of FreePDK45
+# Empty (the default), each flow takes its own: generic for RTL simulation (MEM_TECH_FLOW of
+# sim.mk), and for synthesis, STA and gate level the memories of the technology (MEM_TECH_IMPL):
+# openram45 with the FreePDK45 kit, generic with GPDK045, which has no memories, or with the
+# tutorial library. The Makefile hands the primitive file list to the flows as PRIM_FLIST, and the
+# macro views (Liberty, LEF, Verilog models) come in with openram45 only.
+MEM_TECHS       := generic openram45
+MEM_TECH        ?=
+MEM_TECH_IMPL    = $(if $(and $(filter freepdk45,$(TECH)),$(if $(TECH_TUTORIAL),,1)),openram45,generic)
+MEM_TECH_USED    = $(or $(MEM_TECH),$(MEM_TECH_FLOW),generic)
+PRIM_FLIST       = $(PROJ_ROOT)/rtl/prim/$(if $(filter openram45,$(MEM_TECH_USED)),openram45/)prim.f
+export PRIM_FLIST
+MEM_TECH_LIBS    = $(if $(filter openram45,$(MEM_TECH_USED)),$(MEM_LIBS))
+MEM_TECH_LEFS    = $(if $(and $(filter openram45,$(MEM_TECH_USED)),$(strip $(LEFS))),$(MEM_LEFS))
+MEM_TECH_MODELS  = $(if $(filter openram45,$(MEM_TECH_USED)),$(MEM_MODELS))
+
+# Cell set of a netlist: make syn writes it next to the netlist, sta and gls compare it. The memory
+# technology is part of it: a netlist with macros needs their views.
+TECH_CELLS    = $(if $(TECH_TUTORIAL),tutorial,$(if $(filter file,$(origin LIBS)),$(TECH_KIT_CELLS),$(notdir $(LIBS))))$(if $(MEM_TECH_LIBS), + $(MEM_TECH_USED))
+
+# Recipe lines that stop on an unknown MEM_TECH, on openram45 without the FreePDK45 views, and on a
+# missing macro view.
+define MEM_CHECK
+@test -n "$(filter $(MEM_TECH_USED),$(MEM_TECHS))" || \
+  { echo "[$@] Unknown MEM_TECH '$(MEM_TECH_USED)', choose one of: $(MEM_TECHS)" >&2; exit 1; }
+@test "$(MEM_TECH_USED)" != openram45 -o -n "$(strip $(MEM_MODELS))" || \
+  { echo "[$@] MEM_TECH=openram45 needs TECH=freepdk45" >&2; exit 1; }
+@for f in $(MEM_TECH_MODELS); do test -r "$$f" || \
+  { echo "[$@] Cannot read the macro model $$f (syn/tech/openram45/views, see make openram)" >&2; exit 1; }; done
+endef
 
 # Recipe lines that show the technology and stop on a CORNER the kit does not have, on a kit
 # directory given on the command line that holds no kit, or on a technology file that is missing
 # or not readable.
 define TECH_CHECK
-@echo "[$@] Technology: $(strip $(TECH_NAME))"
+@echo "[$@] Technology: $(strip $(TECH_NAME)); memories: $(MEM_TECH_USED)"
 @test -n "$(TECH_TUTORIAL)" -o -n "$(filter $(CORNER),$(TECH_CORNERS))" -o "$(origin LIBS)" != file || \
   { echo "[$@] Unknown CORNER '$(CORNER)' for TECH=$(TECH), choose one of: $(TECH_CORNERS)" >&2; exit 1; }
 @test "$(origin $(TECH_KIT_VAR))" = file -o -n "$(TECH_KIT)" || \
   { echo "[$@] No $(TECH) kit in $(TECH_KIT_VAR)=$($(TECH_KIT_VAR))" >&2; exit 1; }
-@for f in $(LIBS) $(LEFS) $(if $(LEFS),$(QRC) $(CAPTBL)); do test -r "$$f" || \
+@for f in $(LIBS) $(LEFS) $(if $(LEFS),$(QRC) $(CAPTBL)) $(MEM_TECH_LIBS) $(MEM_TECH_LEFS); do test -r "$$f" || \
   { echo "[$@] Cannot read $$f (check TECH, CORNER, VT, RC_CORNER and the read permission of the kit)" >&2; exit 1; }; done
 endef
 
