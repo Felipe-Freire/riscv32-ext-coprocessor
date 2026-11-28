@@ -37,10 +37,13 @@
         <mxCell id="e_core_dtcm" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.6;strokeColor=#6A1B9A;exitX=1;exitY=0.8548;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="core" target="dtcm">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="l2" value="&lt;b&gt;L2 SRAM&lt;/b&gt;&lt;br&gt;matrices A, B, C" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=10;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="690" y="84" width="215" height="62" as="geometry" />
+        <mxCell id="l2b0" value="&lt;b&gt;L2 bank 0&lt;/b&gt;&lt;br&gt;A, B" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=10;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="690" y="84" width="100" height="62" as="geometry" />
         </mxCell>
-        <mxCell id="wx" value="AXI4 interconnect &amp;middot; 128-bit" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFB300;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
+        <mxCell id="l2b1" value="&lt;b&gt;L2 bank 1&lt;/b&gt;&lt;br&gt;C" style="rounded=1;arcSize=8;whiteSpace=wrap;html=1;fillColor=#0B6FC4;strokeColor=#063F73;fontColor=#FFFFFF;fontSize=10;fontFamily=Helvetica;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="805" y="84" width="100" height="62" as="geometry" />
+        </mxCell>
+        <mxCell id="wx" value="AXI4 crossbar 2&amp;times;2 &amp;middot; 128-bit" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFB300;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Helvetica;" vertex="1" parent="1">
           <mxGeometry x="470" y="195" width="435" height="26" as="geometry" />
         </mxCell>
         <mxCell id="cbus" value="AXI4-Lite control bus" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFB300;strokeColor=#000000;fontColor=#000000;fontStyle=1;fontSize=11;fontFamily=Helvetica;fontSize=10;" vertex="1" parent="1">
@@ -53,7 +56,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="e_wx_l2" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=3.5;strokeColor=#000000;endSize=3;exitX=0.7529;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="wx" target="l2">
+        <mxCell id="e_wx_l2b0" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=3.5;strokeColor=#000000;endSize=3;exitX=0.6207;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="wx" target="l2b0">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_wx_l2b1" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=3.5;strokeColor=#000000;endSize=3;exitX=0.8851;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="wx" target="l2b1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="e_cpu_cbus" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;html=1;endArrow=block;endFill=1;endSize=4;jumpStyle=arc;jumpSize=6;fontSize=9;labelBackgroundColor=#FFFFFF;exitPerimeter=0;entryPerimeter=0;fontFamily=Helvetica;strokeWidth=1.4;strokeColor=#606060;exitX=0.0256;exitY=1;exitDx=0;exitDy=0;entryX=0.0113;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="cpu" target="cbus">

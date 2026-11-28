@@ -1,6 +1,9 @@
 // pulp-platform/axi (vendor/axi), generated from its Bender.yml in the same compile order.
 // Needs common_cells.f first. Simulation-only files are in axi_sim.f.
+// The sources include common_cells headers too, and Genus keeps the include directories of each
+// file list to that list, so this one repeats the common_cells include directory.
 +incdir+${PROJ_ROOT}/vendor/axi/include
++incdir+${PROJ_ROOT}/vendor/common_cells/include
 ${PROJ_ROOT}/vendor/axi/src/axi_pkg.sv
 ${PROJ_ROOT}/vendor/axi/src/axi_demux_id_counters.sv
 ${PROJ_ROOT}/vendor/axi/src/axi_intf.sv

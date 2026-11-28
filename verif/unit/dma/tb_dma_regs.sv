@@ -1,6 +1,5 @@
-// Unit testbench for dma_regs (DMA-01, DMA-06)
-// Run from project root:
-//   xrun -sv -top tb_dma_regs ${PROJ_ROOT}/rtl/dma/dma_pkg.sv ${PROJ_ROOT}/rtl/dma/dma_regs.sv verif/unit/dma/tb_dma_regs.sv
+// Unit testbench for dma_regs (DMA-01, DMA-06): register map, W1C, busy write protection, irq_o.
+// Run: make sim TB=tb_dma_regs
 //`timescale 1ns/1ps
 
 module tb_dma_regs;
@@ -33,9 +32,15 @@ module tb_dma_regs;
   initial clk_i = 1'b0;
   always #5 clk_i = ~clk_i;
 
+  // A handshake that never completes ends the run instead of hanging the regression.
+  initial begin : watchdog
+    #1ms;
+    $fatal(1, "timeout: the test did not finish in 1 ms");
+  end
+
   task automatic check(input string msg, input logic cond);
     if (!cond) begin
-      $display("[FAIL] %s (t=%0t)", msg, $time);
+      $error("%s", msg);
       err_cnt++;
     end else begin
       $display("[PASS] %s", msg);
@@ -154,12 +159,11 @@ module tb_dma_regs;
     @(posedge clk_i);
     check("irq_o deasserted when IRQ_EN cleared", irq_o == 1'b0);
 
-    $display("========================================");
-    if (err_cnt == 0)
-      $display("TB_DMA_REGS: PASSED (0 errors)");
-    else
-      $display("TB_DMA_REGS: FAILED (%0d errors)", err_cnt);
-    $display("========================================");
+    if (err_cnt == 0) begin
+      $display("PASS: tb_dma_regs, all checks passed");
+    end else begin
+      $fatal(1, "tb_dma_regs: %0d errors", err_cnt);
+    end
     $finish;
   end
 

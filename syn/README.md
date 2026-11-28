@@ -21,7 +21,7 @@ make sta BLOCK=coproc CORNER=slow_vdd1v2        # time the coproc_top netlist at
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `BLOCK` | `core` | `core` or `coproc`: selects the file lists and the default top |
+| `BLOCK` | `core` | `core`, `coproc`, `dma` or `bus`: selects the file lists and the default top |
 | `TOP` | Block top | Any module of the block's file lists |
 | `CLK_PERIOD`, `ACC_CLK_PERIOD` | `10`, `CLK_PERIOD` | `clk_i` and `clk_acc_i` periods in ns |
 | `VT`, `CORNER`, `RC_CORNER` | `svt`, `slow_vdd1v0`, `rcworst` | GPDK045 flavour, Liberty corner and wire estimation rules |
@@ -53,6 +53,14 @@ rules only; hold waits for Tempus.
   IP first) and default top. To add one, add it to `BLOCKS` with its `RTL_FLIST_<block>` and
   `RTL_TOP_<block>`. The SoC top will read [`rtl/rtl.f`](../rtl/rtl.f), with the technology
   primitive list in place of `rtl/prim/prim.f`.
+- Genus reads the file lists with the defines Bender passes to a Genus synthesis (`SYNTHESIS`,
+  `TARGET_SYNTHESIS`, `TARGET_GENUS`): the vendor IP leaves out its assertions and the interface
+  wrappers Genus cannot parse under them, and RTL puts simulation-only code in `` `ifndef SYNTHESIS``.
+  Genus keeps the include directories of a file list to that list, so a list repeats the
+  `+incdir+` of every header its files include (`vendor/axi.f` repeats the `common_cells` one).
+- A packed struct port (the bus types of `soc_pkg`) is one vector port in the netlist
+  (`hdl_flatten_complex_port`), not one port per field, so `make gls` plugs the netlist into the
+  testbench of the RTL: `make gls TB=tb_bus_axi_xbar TOP=bus_axi_xbar`.
 - PDK files and macro views are never committed: a local copy goes in `lib/`, which git ignores.
 - `make syn` writes the cell set of the netlist to `outputs/cells`; `sta` and `gls` stop when the
   technology in use has other cells, so run `make syn` again after changing `VT` or `LIBS`.

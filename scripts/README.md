@@ -37,8 +37,11 @@ and `make regress SIM=verilator` passes it on to every run. Each run compiles an
 `build/verilator/<TB>/`, and supports neither UVM, gate level, coverage, waves nor the GUI. The block of a testbench is its
 directory under `verif/unit/`, or the first word of the UVM environment (`core_pc` → `core`); its
 RTL file lists come from the block table in the [`Makefile`](../Makefile), vendor IP included. At
-gate level the RTL is replaced by the netlist of `make syn`, the block's packages and the cell
-models. `make help` lists every variable.
+gate level the RTL is replaced by the netlist of `make syn`, the block's packages and interfaces
+(`*_pkg.sv`, `*_intf.sv`) and the cell models. A block can also have testbench-only file lists,
+`SIM_FLIST_<block>` in the same table (verification IP such as `vendor/axi_sim.f`, or the RTL of
+another block a testbench runs against). They are compiled after the design and before the
+testbench, at RTL and gate level, and synthesis never reads them. `make help` lists every variable.
 
 ## Conventions
 

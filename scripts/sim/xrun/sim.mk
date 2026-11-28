@@ -2,7 +2,11 @@
 # Everything but compiling and running (what runs, co-simulation, regress) is in scripts/sim/sim.mk.
 #
 # Gate level (GLS=1): the RTL is replaced by the netlist `make syn` wrote for TOP (default: the
-# block's top), the packages of the block and the cell models; SDF=1 adds the delays of SDF_FILE.
+# block's top), the packages and interfaces of the block and the cell models; SDF=1 adds the delays
+# of SDF_FILE.
+# Testbench-only file lists (SIM_FLIST_<block> in the top-level Makefile: verification IP, or the RTL
+# of another block a testbench runs against) are compiled after the design and before the testbench,
+# at RTL and at gate level. Synthesis never reads them.
 
 XRUN      ?= xrun
 XRUN_OPTS ?=
@@ -16,14 +20,18 @@ SDF_SCOPE  ?= $(SIM_TOP).dut
 # ---- xrun command line --------------------------------------------------------------------------
 
 ifeq ($(GLS),1)
-# Packages and include directories of the block (the testbenches import them), the netlist, and
-# the cell models as a library: zero delay, or the SDF delays with timing checks.
+# Packages, interfaces and include directories of the block (the testbenches use them), the
+# netlist, and the cell models as a library: zero delay, or the SDF delays with timing checks.
 SIM_DESIGN = -f gls_pkgs.f $(GLS_NETLIST) -v $(abspath $(TECH_MODELS)) -define GLS \
              $(if $(filter 1,$(SDF)),-sdf_cmd_file sdf.cmd -neg_tchk,-nospecify -notimingchecks)
 else
 SIM_DESIGN = $(foreach f,$(RTL_FLIST_$(SIM_BLOCK)),-f $(f))
 endif
 
+SIM_FLISTS = $(foreach f,$(SIM_FLIST_$(SIM_BLOCK)),-f $(f))
+
+SIM_ARGS = -64bit -sv -timescale 1ns/1ps -licqueue -l xrun.log -svseed $(SEED) \
+           $(SIM_DESIGN) $(SIM_FLISTS) $(SIM_TB) -top $(SIM_TOP) \
 XRUN_TB    = $(if $(strip $(UVM)),-f $(SIM_UVM_DIR)/$(UVM).f,$(SIM_TB_FILE))
 
 SIM_ARGS = -64bit -sv -timescale 1ns/1ps -licqueue -l xrun.log -svseed $(SEED) \
@@ -52,7 +60,7 @@ ifneq ($(strip $(SW)),)
 endif
 	@mkdir -p $(SIM_RUN_DIR)
 ifeq ($(GLS),1)
-	@sed -n -e '/^\s*+incdir+/p' -e '/_pkg\.sv\s*$$/p' $(RTL_FLIST_$(SIM_BLOCK)) > $(SIM_RUN_DIR)/gls_pkgs.f
+	@sed -n -e '/^\s*+incdir+/p' -e '/_\(pkg\|intf\)\.sv\s*$$/p' $(RTL_FLIST_$(SIM_BLOCK)) > $(SIM_RUN_DIR)/gls_pkgs.f
 ifeq ($(SDF),1)
 	@test -r "$(SDF_FILE)" || { echo "[sim] No SDF $(SDF_FILE)" >&2; exit 1; }
 	cd $(SIM_RUN_DIR) && xmsdfc -output $(GLS_TOP).sdf.X $(abspath $(SDF_FILE)) > xmsdfc.log
