@@ -1,0 +1,1 @@
+run_act_elf.sh --elf

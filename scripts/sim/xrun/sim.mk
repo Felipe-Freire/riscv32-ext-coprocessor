@@ -1,9 +1,6 @@
-# Simulation with Cadence Xcelium (xrun), included by the top-level Makefile. Usage: scripts/README.md.
+# Cadence Xcelium (xrun), the default simulator: included by scripts/sim/sim.mk when SIM=xrun.
+# Everything but compiling and running (what runs, co-simulation, regress) is in scripts/sim/sim.mk.
 #
-# Directed testbench (TB=): verif/unit/<block>/<TB>.sv. The directory names the block, whose RTL
-# file lists come from the top-level Makefile, and the last module of the file is the top.
-# UVM test (UVM= TEST=): verif/uvm/<env>/<env>.f with the top tb_<env>; the block is the first word
-# of the environment name (core_pc -> core).
 # Gate level (GLS=1): the RTL is replaced by the netlist `make syn` wrote for TOP (default: the
 # block's top), the packages and interfaces of the block and the cell models; SDF=1 adds the delays
 # of SDF_FILE.
@@ -12,37 +9,7 @@
 # at RTL and at gate level. Synthesis never reads them.
 
 XRUN      ?= xrun
-TB        ?=
-UVM       ?=
-TEST      ?=
-SEED      ?= 1
-VERBOSITY ?= UVM_MEDIUM
-PLUSARGS  ?=
 XRUN_OPTS ?=
-WAVES     ?= 0
-GUI       ?= 0
-COV       ?= 0
-GLS       ?= 0
-SDF       ?= 0
-LIST      ?= $(PROJ_ROOT)/verif/regress/smoke.list
-JOBS      ?= 1
-
-# ---- What runs ----------------------------------------------------------------------------------
-
-SIM_TB_FILE = $(firstword $(wildcard $(PROJ_ROOT)/verif/unit/*/$(TB).sv))
-SIM_UVM_DIR = $(PROJ_ROOT)/verif/uvm/$(UVM)
-
-ifneq ($(strip $(UVM)),)
-SIM_BLOCK   = $(firstword $(subst _, ,$(UVM)))
-SIM_TOP     = tb_$(UVM)
-SIM_TB      = -f $(SIM_UVM_DIR)/$(UVM).f
-SIM_NAME    = $(TEST)_s$(SEED)
-else
-SIM_BLOCK   = $(notdir $(patsubst %/,%,$(dir $(SIM_TB_FILE))))
-SIM_TOP     = $(shell sed -n 's/^\s*module\s\+\(\w\+\).*/\1/p' $(SIM_TB_FILE) | tail -1)
-SIM_TB      = $(SIM_TB_FILE)
-SIM_NAME    = $(TB)
-endif
 
 # Gate level: TOP given on the command line, or the block's top.
 GLS_TOP     = $(if $(filter command line environment override,$(origin TOP)),$(TOP),$(RTL_TOP_$(SIM_BLOCK)))
@@ -69,17 +36,19 @@ endif
 
 SIM_FLISTS = $(foreach f,$(SIM_FLIST_$(SIM_BLOCK)),-f $(f))
 
+XRUN_TB    = $(if $(strip $(UVM)),-f $(SIM_UVM_DIR)/$(UVM).f,$(SIM_TB_FILE))
+
 SIM_ARGS = -64bit -sv -timescale 1ns/1ps -licqueue -l xrun.log -svseed $(SEED) \
-           $(SIM_DESIGN) $(SIM_FLISTS) $(SIM_TB) -top $(SIM_TOP) \
+           $(SIM_DESIGN) $(SIM_FLISTS) $(SIM_TB) $(XRUN_TB) -top $(SIM_TOP) \
            $(if $(strip $(UVM)),-uvm -uvmhome CDNS-1.2 +UVM_TESTNAME=$(TEST) +UVM_VERBOSITY=$(VERBOSITY)) \
            $(if $(filter 1,$(WAVES)),-access +r -input $(PROJ_ROOT)/scripts/sim/xrun/waves.tcl) \
            $(if $(filter 1,$(GUI)),-gui -access +rwc) \
            $(if $(filter 1,$(COV)),-coverage all -covoverwrite -covtest $(SIM_NAME)) \
-           $(PLUSARGS) $(XRUN_OPTS)
+           $(COSIM_ARGS) $(PLUSARGS) $(XRUN_OPTS)
 
 # ---- Targets ------------------------------------------------------------------------------------
 
-.PHONY: sim gls sim-list regress
+.PHONY: sim gls
 
 # The memory primitives (syn/tech/tech.mk): generic at RTL unless MEM_TECH says otherwise, those of
 # the synthesis at gate level, so the netlist finds the models of its macros.
@@ -97,12 +66,16 @@ sim:
 	@test -n "$(RTL_FLIST_$(SIM_BLOCK))" || \
 	  { echo "[sim] Block '$(SIM_BLOCK)' of $(TB)$(UVM) is not in the Makefile block table" >&2; exit 1; }
 	$(MEM_CHECK)
+	$(SIM_CHECK)
 ifeq ($(GLS),1)
 	@test -r "$(GLS_NETLIST)" || { echo "[sim] No netlist $(GLS_NETLIST):" \
 	  "run make syn BLOCK=$(SIM_BLOCK) TOP=$(GLS_TOP) first" >&2; exit 1; }
 	$(call NETLIST_CHECK,$(BUILD_DIR)/syn/$(GLS_TOP))
 	@test -n "$(TECH_MODELS)" && test -r "$(TECH_MODELS)" || { echo "[sim] No Verilog cell" \
 	  "models for $(TECH_NAME): set CELL_MODELS=<file.v>" >&2; exit 1; }
+endif
+ifneq ($(strip $(SW)),)
+	$(COSIM_PREPARE)
 endif
 	@mkdir -p $(SIM_RUN_DIR)
 ifeq ($(GLS),1)
@@ -117,7 +90,7 @@ endif
 	cd $(SIM_RUN_DIR) && { $(XRUN) $(SIM_ARGS); \
 	  $(PYTHON) $(PROJ_ROOT)/scripts/sim/check_sim.py xrun.log $$? $(notdir $(SIM_RUN_DIR)) \
 	    $(if $(strip $(UVM)),--uvm); }
-
+	$(call SIM_RUN,$(XRUN) $(SIM_ARGS),xrun.log)
 gls:
 	@$(MAKE) --no-print-directory sim GLS=1
 
@@ -132,3 +105,6 @@ sim-list:
 
 regress:
 	@$(PYTHON) $(PROJ_ROOT)/scripts/sim/regress.py --jobs $(JOBS) --out $(BUILD_DIR)/regress $(LIST)
+
+gls:
+	@$(MAKE) --no-print-directory sim GLS=1
