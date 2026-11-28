@@ -4,7 +4,7 @@ ASIC synthesis and static timing analysis with Cadence Genus. `TECH` picks the t
 
 | `TECH` | Cells | Kit | Use |
 |---|---|---|---|
-| `freepdk45` (default) | NanGate Open Cell Library | `lib/freepdk45`, downloaded by `make freepdk45` from [mflowgen/freepdk-45nm](https://github.com/mflowgen/freepdk-45nm) at a fixed commit, with checksums ([`tech/freepdk45/`](tech/freepdk45/)) | Open 45 nm PDK. Its SRAM macros come from OpenRAM (`make openram`, [`tech/openram45/`](tech/openram45/README.md)), on the same layers. It cannot be fabricated: area and timing are estimates |
+| `freepdk45` (default) | NanGate Open Cell Library | `lib/freepdk45`, downloaded by `make freepdk45` from [mflowgen/freepdk-45nm](https://github.com/mflowgen/freepdk-45nm) at a fixed commit, with checksums ([`tech/freepdk45/`](tech/freepdk45/)) | Open 45 nm PDK. Its SRAM macros come from OpenRAM, on the same layers, with their views in git ([`tech/openram45/`](tech/openram45/README.md)). It cannot be fabricated: area and timing are estimates |
 | `gpdk045` (standby) | gsclib045 | `/apps/cds/installs/STRATUS2501/share/stratus/techlibs/GPDK045`, then `lib/GPDK045` or `lib/` | Cadence generic 45 nm kit, which has no memories; kept for when the lab libraries are checked |
 
 Both estimate the wires from the placement Genus predicts (PLE): from the LEF and the capacitance
@@ -18,7 +18,8 @@ compare RTL versions with each other. `make help` shows the technology in use.
 ```bash
 source scripts/setup.sh
 make freepdk45                                  # once: FreePDK45/NanGate views to lib/freepdk45
-make openram                                    # once: SRAM macros to lib/openram45 (builds .venv)
+make openram                                    # only to regenerate the SRAM macros, about an hour (builds .venv)
+make openram-char                               # optional, hours: SPICE timing of the macros at every corner
 make syn-list                                   # blocks and the modules each one can synthesize
 make syn                                        # core: rv32_core
 make syn BLOCK=coproc ACC_CLK_PERIOD=5          # coprocessor: coproc_top, array clock at 5 ns
@@ -35,7 +36,7 @@ make syn BLOCK=core TECH=gpdk045                # the same block on the GPDK045 
 | `TOP` | Block top | Any module of the block's file lists |
 | `CLK_PERIOD`, `ACC_CLK_PERIOD` | `10`, `CLK_PERIOD` | `clk_i` and `clk_acc_i` periods in ns |
 | `TECH` | `freepdk45` | `freepdk45` or `gpdk045` |
-| `CORNER` | `typical` | Liberty corner. FreePDK45: `typical` (1.1 V, 25 °C, the only corner of the OpenRAM macros so far), `slow` (0.95 V, 125 °C), `fast` (1.25 V, 0 °C). GPDK045: `slow_vdd1v0` (default there), `slow_vdd1v2`, `fast_vdd1v0`, `fast_vdd1v2` |
+| `CORNER` | `typical` | Liberty corner. FreePDK45: `typical` (1.1 V, 25 °C, the corner of the analytical timing of the OpenRAM macros), `slow` (0.95 V, 125 °C), `fast` (1.25 V, 0 °C). GPDK045: `slow_vdd1v0` (default there), `slow_vdd1v2`, `fast_vdd1v0`, `fast_vdd1v2` |
 | `VT`, `RC_CORNER` | `svt`, `rcworst` | GPDK045 only: threshold flavour and wire estimation rules |
 | `LIBS`, `LEFS` | The kit's | Liberty and LEF files; empty selects the tutorial library |
 | `CLOCK_GATING` | `1` | Clock-gating cells where the library has them |
@@ -68,13 +69,16 @@ undriven or multidriven ports, and every cell has its LEF. The gate-level regres
 is fixed before place and route, so at `typical` the flops that drive other flops directly
 (synchronizers, reset release) break the hold time of the next one.
 
-The SRAM macro, from [OpenRAM](tech/openram45/README.md). Its timing is **an analytical
-estimate**: OpenRAM's model gives a negative delay at SS and the same setup and hold at every
-corner, so only its TT Liberty file exists, and every `CORNER` reads it.
+The SRAM macro, from [OpenRAM](tech/openram45/README.md): layout with supply rings and pins on the
+edge, DRC clean and LVS match with KLayout. Its timing from `make openram` is **an analytical
+estimate**, and an optimistic one (one ngspice simulation at TT gives 0.670 ns for the 0.362 ns
+below). OpenRAM's model gives a negative delay at SS and the same setup and hold at every corner,
+so `make openram` writes only the TT Liberty file, which every `CORNER` reads until
+`make openram-char` adds the SPICE ones.
 
-| Macro | Area | `clk0` → `dout0` (TT) | Setup / hold (TT) |
+| Macro | Area | `clk0` → `dout0` (TT, analytical) | Setup / hold (TT, analytical) |
 |---|---|---|---|
-| `sram_sp_2048x32_m8`, 2048 × 32 | 89 532 (232.4 × 385.2 µm) | Half a period + 0.36 ns: the falling edge, then 0.362 ns | 0.009 / 0.001 ns |
+| `sram_sp_2048x32_m8`, 2048 × 32 | 93 399 (238.6 × 391.5 µm) | Half a period + 0.36 ns: the falling edge, then 0.362 ns | 0.009 / 0.001 ns |
 
 ## Contents
 
@@ -82,7 +86,7 @@ corner, so only its TT Liberty file exists, and every `CORNER` reads it.
 |---|---|
 | [`tech/tech.mk`](tech/tech.mk) | Technology: `TECH` selection, kit paths, corners, cell models; tutorial library fallback |
 | [`tech/freepdk45/`](tech/freepdk45/) | `make freepdk45`: download of the FreePDK45/NanGate views, the commit they come from and their checksums |
-| [`tech/openram45/`](tech/openram45/README.md) | `make openram`: OpenRAM configurations of the SRAM macros, their ports, size and timing |
+| [`tech/openram45/`](tech/openram45/README.md) | `make openram`, `make openram-char`: OpenRAM configurations of the SRAM macros, their flow, ports, size and timing |
 | [`tech/tutorial_cells.v`](tech/tutorial_cells.v) | Simulation models of the tutorial library, for gate-level simulation without the kit |
 | [`syn.mk`](syn.mk), [`genus/syn.tcl`](genus/syn.tcl) | `make syn`: read, elaborate, `syn_generic`, `syn_map`, `syn_opt`, reports |
 | [`sta.mk`](sta.mk), [`genus/sta.tcl`](genus/sta.tcl) | `make sta`: timing of the netlist at one corner, SDF |
@@ -103,8 +107,12 @@ corner, so only its TT Liberty file exists, and every `CORNER` reads it.
 - A packed struct port (the bus types of `soc_pkg`) is one vector port in the netlist
   (`hdl_flatten_complex_port`), not one port per field, so `make gls` plugs the netlist into the
   testbench of the RTL: `make gls TB=tb_bus_axi_xbar TOP=bus_axi_xbar`.
-- PDK files and macro views are never committed: a local copy goes in `lib/`, which git ignores
-  (`make freepdk45` writes `lib/freepdk45`, `make openram` writes `lib/openram45`).
+- PDK files are never committed: a local copy goes in `lib/`, which git ignores (`make freepdk45`
+  writes `lib/freepdk45`). The views of the OpenRAM macros that the flows read (Liberty, LEF,
+  Verilog model, about 30 KB per macro) are the exception, in
+  [`tech/openram45/views/`](tech/openram45/README.md): regenerating a macro takes an hour and
+  characterizing it hours, so it is done once and committed. Its GDS and netlists stay in
+  `lib/openram45`.
 - `make syn` writes the cell set of the netlist to `outputs/cells`; `sta` and `gls` stop when the
   technology in use has other cells, so run `make syn` again after changing `TECH`, `VT` or `LIBS`.
 - Netlists, reports and logs go to `build/`, never into this directory.

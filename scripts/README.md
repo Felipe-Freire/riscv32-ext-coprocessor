@@ -7,20 +7,22 @@ Tool wrappers and helper utilities. Day-to-day use goes through the top-level
 
 | Path | Contents |
 |---|---|
-| [`setup.sh`](setup.sh) | Environment setup: `source scripts/setup.sh` exports `PROJ_ROOT` and activates `.venv` |
-| [`venv.mk`](venv.mk) | `make venv`: the Python environment of the project, `.venv` (git-ignored), with the packages of [`requirements.txt`](../requirements.txt) |
+| [`setup.sh`](setup.sh) | Environment setup: `source scripts/setup.sh` exports `PROJ_ROOT`, activates `.venv` and appends the EDA tools of `.venv/eda` to `PATH` |
+| [`venv.mk`](venv.mk) | `make venv`: the environment of the project in `.venv` (git-ignored): the Python packages of [`requirements.txt`](../requirements.txt), and in `.venv/eda` the conda tools of [`eda-tools.yml`](../eda-tools.yml) (ngspice, KLayout), installed by a micromamba of fixed version and checksum |
 | [`sim/xrun/`](sim/xrun/) | Xcelium flow: `sim.mk` (`make sim`, `gls`, `sim-list`, `regress`) and `waves.tcl` |
 | [`sim/check_sim.py`](sim/check_sim.py) | PASS/FAIL of one run: exit status and `*E`/`*F` messages (`$error`, `$fatal`, assertions), then the end marker (`PASS` line or UVM summary) |
 | [`sim/regress.py`](sim/regress.py) | Runs the lines of a [regression list](../verif/regress/) and prints a PASS/FAIL table |
+| [`utils/openram_macro.py`](utils/openram_macro.py) | `make openram` and `make openram-char`: OpenRAM runs of an SRAM macro, one per corner and in parallel, then the checks of its views (DRC, LVS, `VERBOSE = 0`, equal areas) and their copy to `syn/tech/openram45/views/`, the one in git |
 | [`utils/`](utils/) | Helpers: ELF→hex conversion, generators, log and coverage report parsers |
 
 Synthesis and STA scripts live with their constraints in [`syn/`](../syn/README.md).
 
 Every Python tool of the flows runs on the interpreter of `.venv` once `make venv` has built it, and
 on the `python3` of `PATH` before that. The simulation scripts need only the standard library, so
-they run either way; the tools of `requirements.txt` (OpenRAM, for `make openram`) need the venv,
-and their targets build it first. Edit `requirements.txt` to add a package: the next run rebuilds
-the venv.
+they run either way; the tools of the venv (OpenRAM, ngspice and KLayout, for `make openram`) need
+it, and their targets build it first. Edit `requirements.txt` (pip) or `eda-tools.yml` (conda) to
+add a package: the next run rebuilds that part. Nothing is installed outside `.venv`, and nothing
+needs root.
 
 ## Simulation
 

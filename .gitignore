@@ -4,7 +4,9 @@
 build/
 
 # Local copies of the PDKs, where syn/tech/tech.mk looks for them: GPDK045 is under NDA, and
-# `make freepdk45` downloads the FreePDK45/NanGate views to lib/freepdk45
+# `make freepdk45` downloads the FreePDK45/NanGate views to lib/freepdk45. `make openram` writes
+# the full OpenRAM outputs (GDS, netlists) to lib/openram45; the views the flows read are kept in
+# git in syn/tech/openram45/views
 /lib/
 
 # ---------------------------------------------------------------------------

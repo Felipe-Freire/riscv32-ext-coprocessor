@@ -60,7 +60,7 @@ make help                 # list available targets
 | Cadence Xcelium (`xrun`) | Simulation: directed, UVM and gate level ([`scripts/`](scripts/README.md)) |
 | RISC-V GNU toolchain (`riscv64-unknown-elf-gcc`) | Building programs in [`sw/`](sw/README.md) |
 | Cadence Genus (`genus`) | Synthesis and STA in [`syn/`](syn/README.md): FreePDK45 with the NanGate cells (`make freepdk45`), or GPDK045 |
-| Python 3.9 or newer | Flow scripts; `make venv` builds `.venv` with the packages of [`requirements.txt`](requirements.txt), such as OpenRAM for the SRAM macros (`make openram`) |
+| Python 3.9 or newer, `curl` | Flow scripts; `make venv` builds `.venv` with the packages of [`requirements.txt`](requirements.txt) and the tools of [`eda-tools.yml`](eda-tools.yml): OpenRAM, ngspice and KLayout, only to regenerate the SRAM macros (`make openram`), whose views are in git. No root needed |
 
 Detailed setup instructions will live in [`docs/guides/`](docs/README.md#guides).
 

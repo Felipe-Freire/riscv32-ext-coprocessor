@@ -5,9 +5,9 @@
 #              mflowgen/freepdk-45nm. `make freepdk45` downloads it to lib/freepdk45 (ignored by git,
 #              see syn/tech/freepdk45/freepdk45.mk); FREEPDK45=<dir> points elsewhere. The PDK is
 #              open and cannot be fabricated: area and timing are estimates. CORNER picks the
-#              Liberty corner (typical 1.1 V 25 C, the default, as the OpenRAM macros; slow 0.95 V
-#              125 C; fast 1.25 V 0 C), and the wires are estimated from the LEF with the
-#              capacitance table of the kit.
+#              Liberty corner (typical 1.1 V 25 C, the default, the corner of the analytical
+#              timing of the OpenRAM macros; slow 0.95 V 125 C; fast 1.25 V 0 C), and the wires
+#              are estimated from the LEF with the capacitance table of the kit.
 #   gpdk045    Cadence GPDK045 (gsclib045), on standby until the lab memory libraries are checked.
 #              The kit is the first of these directories that holds it:
 #                1. /apps/cds/installs/STRATUS2501/share/stratus/techlibs/GPDK045 (the Stratus install)
@@ -38,20 +38,30 @@ FREEPDK45_LIB_slow    := stdcells-wc.lib
 FREEPDK45_LIB_fast    := stdcells-bc.lib
 
 # ---- OpenRAM SRAM macros of FreePDK45 ----------------------------------------------------------
-# `make openram` (syn/tech/openram45/openram45.mk) generates one macro per configuration in
-# syn/tech/openram45/ into lib/openram45/<macro>/ (ignored by git); OPENRAM45=<dir> points
-# elsewhere. The Liberty files are named the way OpenRAM names its corners,
-# <process>_<supply>V_<temperature>C. Only the typical corner of the cells is characterized
-# (analytical model, see syn/tech/openram45/README.md): the slow and fast runs read it too, until a
-# SPICE characterization gives the macros their own slow and fast files.
+# The flows read the views kept in git, OPENRAM45_VIEWS/<macro>/ (syn/tech/openram45/views): the
+# Liberty file, LEF and Verilog model of each macro, about 30 KB, so a clone needs no OpenRAM run.
+# `make openram` (syn/tech/openram45/openram45.mk) regenerates one macro per configuration in
+# syn/tech/openram45/ into lib/openram45/<macro>/ (ignored by git, with the GDS and netlists;
+# OPENRAM45=<dir> points elsewhere) and copies those views back to OPENRAM45_VIEWS. Its Liberty
+# file has OpenRAM's analytical timing at TT (OPENRAM45_TT). `make openram-char` adds
+# OPENRAM45_VIEWS/<macro>/spice/, with ngspice characterizations at the PVT of the NanGate corners.
+# The Liberty files are named the way OpenRAM names its corners, <process>_<supply>V_<temperature>C
+# (syn/tech/openram45/README.md).
+#
+# openram45_lib gives the Liberty file of a macro at CORNER: the SPICE one of that corner when
+# make openram-char wrote it, the analytical TT one otherwise (so a slow or fast run before the
+# characterization pairs those cells with TT macros).
 
 OPENRAM45_PATHS          := $(PROJ_ROOT)/lib/openram45
 OPENRAM45                ?= $(firstword $(OPENRAM45_PATHS))
+OPENRAM45_VIEWS          ?= $(PROJ_ROOT)/syn/tech/openram45/views
 OPENRAM45_MACROS         := $(basename $(notdir $(wildcard $(PROJ_ROOT)/syn/tech/openram45/*.py)))
-OPENRAM45_CORNERS        := TT_1p1V_25C
+OPENRAM45_TT             := TT_1p1V_25C
 OPENRAM45_CORNER_typical := TT_1p1V_25C
-OPENRAM45_CORNER_slow    := TT_1p1V_25C
-OPENRAM45_CORNER_fast    := TT_1p1V_25C
+OPENRAM45_CORNER_slow    := SS_0p95V_125C
+OPENRAM45_CORNER_fast    := FF_1p25V_0C
+openram45_lib             = $(firstword $(wildcard $(OPENRAM45_VIEWS)/$(1)/spice/$(1)_$(OPENRAM45_CORNER_$(CORNER)).lib) \
+                                        $(OPENRAM45_VIEWS)/$(1)/$(1)_$(OPENRAM45_TT).lib)
 
 # ---- GPDK045 (standby) -------------------------------------------------------------------------
 
@@ -94,11 +104,11 @@ endif
 # timing checks do not use those cells, so the models are compiled without them.
 CELL_MODEL_DEFINES := TETRAMAX
 # Views of the OpenRAM macros at CORNER, for the flows that read the memory macros: Liberty for
-# timing and area, LEF for the placement estimate (same layers as the tech LEF), Verilog models for
-# simulation and gate level.
-MEM_LIBS       ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45)/$(m)/$(m)_$(OPENRAM45_CORNER_$(CORNER)).lib)
-MEM_LEFS       ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45)/$(m)/$(m).lef)
-MEM_MODELS     ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45)/$(m)/$(m).v)
+# timing and area (openram45_lib), LEF for the placement estimate (same layers as the tech LEF),
+# Verilog models for simulation and gate level.
+MEM_LIBS       ?= $(foreach m,$(OPENRAM45_MACROS),$(call openram45_lib,$(m)))
+MEM_LEFS       ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45_VIEWS)/$(m)/$(m).lef)
+MEM_MODELS     ?= $(foreach m,$(OPENRAM45_MACROS),$(OPENRAM45_VIEWS)/$(m)/$(m).v)
 
 else ifeq ($(TECH),gpdk045)
 VT             ?= svt

@@ -1,0 +1,9 @@
+# Stand-in for the activate script of OpenRAM's own conda, sourced by bash.
+#
+# OpenRAM 1.2.48 runs every SPICE simulation as
+#   source $CONDA_HOME/bin/activate && <simulator> && conda deactivate
+# even with use_conda = False (compiler/characterizer/stimuli.py, run_sim). `make openram` sets
+# CONDA_HOME to the directory above this one and already puts the tools of the project venv
+# (.venv/eda/bin) first on PATH, so activating has nothing to do, and `conda deactivate` only has
+# to succeed.
+conda() { :; }

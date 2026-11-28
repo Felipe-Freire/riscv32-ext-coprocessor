@@ -1,0 +1,20 @@
+# Conda packages of the project environment: `make venv` installs them in .venv/eda with a
+# micromamba of fixed version and checksum (scripts/venv.mk). No system package, no root, nothing
+# outside .venv. They are the tools pip cannot install, used to build the SRAM macros
+# (syn/tech/openram45, `make openram`):
+#
+#   ngspice  SPICE simulator: OpenRAM characterizes the macros with it. 41 from conda-forge runs on
+#            several threads (num_sim_threads in the OpenRAM configurations); the ngspice 26 that
+#            OpenRAM's own installer takes from its channel runs on one.
+#   klayout  DRC and LVS of the macros, with the FreePDK45 rule decks OpenRAM ships, and a viewer
+#            for their layout. 0.28.3 from vlsida-eda, the OpenRAM channel, is the version
+#            OpenRAM's installer pins.
+#
+# Versions and builds are pinned, so every machine gets the same tools. A change here rebuilds
+# .venv/eda on the next `make venv` or `make openram`.
+channels:
+  - conda-forge
+  - vlsida-eda
+dependencies:
+  - conda-forge::ngspice=41=ha770c72_0
+  - vlsida-eda::klayout=0.28.3=py38h2bc3f7f_0

@@ -48,7 +48,10 @@ Synthesis and timing (Genus), see syn/README.md
   syn-list        List the blocks and the modules each one can synthesize
   sta             Static timing of the synthesized TOP at CORNER -> build/sta/<top>/<corner>/
   freepdk45       Download the FreePDK45/NanGate views       -> lib/freepdk45/
-  openram         Generate the SRAM macros with OpenRAM      -> lib/openram45/<macro>/
+  openram         SRAM macros with OpenRAM: layout, DRC/LVS, TT timing (~1 h)
+                                                             -> lib/openram45/<macro>/
+  openram-char    Their ngspice characterization at every corner (hours)
+                                                             -> lib/openram45/<macro>/spice/
 
 Simulation (Xcelium), see scripts/README.md
   sim             Run a directed testbench (TB=) or a UVM test (UVM= TEST=)
@@ -57,7 +60,7 @@ Simulation (Xcelium), see scripts/README.md
   sim-list        List the testbenches, the UVM environments and their tests
   regress         Run every line of a regression list, then a PASS/FAIL table
 
-  venv            Python environment with requirements.txt   -> .venv/
+  venv            Python packages and EDA tools (ngspice, KLayout) -> .venv/
   clean           Remove $(BUILD_DIR)
 
 Design and technology (syn, sta, gls)
